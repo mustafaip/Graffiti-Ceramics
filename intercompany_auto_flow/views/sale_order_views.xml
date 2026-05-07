@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Smart button on Sale Order ────────────────────────────────────── -->
+    <record id="view_sale_order_form_intercompany_flow" model="ir.ui.view">
+        <field name="name">sale.order.form.intercompany.flow</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button class="oe_stat_button"
+                        type="object"
+                        name="action_view_intercompany_flows"
+                        icon="fa-exchange"
+                        invisible="intercompany_flow_count == 0">
+                    <field name="intercompany_flow_count"
+                           widget="statinfo"
+                           string="IC Flows"/>
+                </button>
+            </div>
+        </field>
+    </record>
+
+</odoo>
