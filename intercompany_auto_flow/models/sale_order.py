@@ -276,52 +276,72 @@ class SaleOrder(models.Model):
 
             # Step 5: Auto-validate pickings if configured
             # Schedule as post-commit so pickings are fully committed and
-            # stock is reserved before we attempt to validate them
+            # stock is reserved before we attempt to validate them.
+            # Variables are passed as default args to avoid Python closure
+            # capture bug when multiple flows run in the same transaction.
             if buying_company.intercompany_auto_validate_pickings:
-                out_picking_ids = ic_so.picking_ids.ids
-                in_picking_ids = po.picking_ids.ids
-                supplying_company_id = supplying_company.id
-                buying_company_id = buying_company.id
+                def _make_validate_hook(_out_ids, _in_ids, _sc_id, _bc_id, _dbname, _uid, _self):
+                    def _validate_after_commit():
+                        try:
+                            with odoo_registry(_dbname).cursor() as new_cr:
+                                new_env = Environment(new_cr, _uid, {})
+                                out_pickings = new_env['stock.picking'].browse(_out_ids)
+                                in_pickings = new_env['stock.picking'].browse(_in_ids)
+                                sc = new_env['res.company'].browse(_sc_id)
+                                bc = new_env['res.company'].browse(_bc_id)
+                                _self.with_env(new_env)._auto_validate_pickings(
+                                    out_pickings=out_pickings,
+                                    in_pickings=in_pickings,
+                                    supplying_company=sc,
+                                    buying_company=bc,
+                                )
+                                new_cr.commit()
+                        except Exception as e:
+                            _logger.warning('ICF: Post-commit picking validation failed: %s', e)
+                    return _validate_after_commit
 
-                @self.env.cr.postcommit.add
-                def _validate_after_commit():
-                    with odoo_registry(self.env.cr.dbname).cursor() as new_cr:
-                        new_env = Environment(new_cr, self.env.uid, {})
-                        out_pickings = new_env['stock.picking'].browse(out_picking_ids)
-                        in_pickings = new_env['stock.picking'].browse(in_picking_ids)
-                        sc = new_env['res.company'].browse(supplying_company_id)
-                        bc = new_env['res.company'].browse(buying_company_id)
-                        self.with_env(new_env)._auto_validate_pickings(
-                            out_pickings=out_pickings,
-                            in_pickings=in_pickings,
-                            supplying_company=sc,
-                            buying_company=bc,
-                        )
-                        new_cr.commit()
+                self.env.cr.postcommit.add(_make_validate_hook(
+                    list(ic_so.picking_ids.ids),
+                    list(po.picking_ids.ids),
+                    supplying_company.id,
+                    buying_company.id,
+                    self.env.cr.dbname,
+                    self.env.uid,
+                    self,
+                ))
 
             # Step 6: Auto-create bills and invoices if configured
-            # Also scheduled post-commit so documents are fully persisted first
+            # Also scheduled post-commit so documents are fully persisted first.
             if buying_company.intercompany_auto_invoice:
-                po_id = po.id
-                ic_so_id = ic_so.id
-                buying_company_id = buying_company.id
-                supplying_company_id = supplying_company.id
+                def _make_invoice_hook(_po_id, _ic_so_id, _bc_id, _sc_id, _dbname, _uid, _self):
+                    def _invoice_after_commit():
+                        try:
+                            with odoo_registry(_dbname).cursor() as new_cr:
+                                new_env = Environment(new_cr, _uid, {})
+                                po_rec = new_env['purchase.order'].browse(_po_id)
+                                ic_so_rec = new_env['sale.order'].browse(_ic_so_id)
+                                bc = new_env['res.company'].browse(_bc_id)
+                                sc = new_env['res.company'].browse(_sc_id)
+                                _self.with_env(new_env)._create_intercompany_invoices(
+                                    po=po_rec,
+                                    ic_so=ic_so_rec,
+                                    buying_company=bc,
+                                    supplying_company=sc,
+                                )
+                                new_cr.commit()
+                        except Exception as e:
+                            _logger.warning('ICF: Post-commit invoice creation failed: %s', e)
+                    return _invoice_after_commit
 
-                @self.env.cr.postcommit.add
-                def _invoice_after_commit():
-                    with odoo_registry(self.env.cr.dbname).cursor() as new_cr:
-                        new_env = Environment(new_cr, self.env.uid, {})
-                        po_rec = new_env['purchase.order'].browse(po_id)
-                        ic_so_rec = new_env['sale.order'].browse(ic_so_id)
-                        bc = new_env['res.company'].browse(buying_company_id)
-                        sc = new_env['res.company'].browse(supplying_company_id)
-                        self.with_env(new_env)._create_intercompany_invoices(
-                            po=po_rec,
-                            ic_so=ic_so_rec,
-                            buying_company=bc,
-                            supplying_company=sc,
-                        )
-                        new_cr.commit()
+                self.env.cr.postcommit.add(_make_invoice_hook(
+                    po.id,
+                    ic_so.id,
+                    buying_company.id,
+                    supplying_company.id,
+                    self.env.cr.dbname,
+                    self.env.uid,
+                    self,
+                ))
 
             log.state = 'done'
 
