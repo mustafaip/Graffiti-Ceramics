@@ -342,9 +342,16 @@ class SaleOrder(models.Model):
                         picking.action_assign()
 
                     # Step 2: set quantity done on every move line
-                    # reserved_uom_qty is the Odoo 19 field name (was reserved_qty)
+                    # In Odoo 19 the reserved qty field on stock.move.line
+                    # is quantity_product_uom (previously reserved_qty / reserved_uom_qty)
                     for ml in picking.move_line_ids:
-                        ml.quantity = ml.reserved_uom_qty or ml.move_id.product_uom_qty
+                        reserved = (
+                            getattr(ml, 'quantity_product_uom', None)
+                            or getattr(ml, 'reserved_uom_qty', None)
+                            or getattr(ml, 'reserved_qty', None)
+                            or ml.move_id.product_uom_qty
+                        )
+                        ml.quantity = reserved
 
                     # Step 3: for moves that have no lines yet, set quantity
                     for move in picking.move_ids.filtered(
@@ -400,10 +407,11 @@ class SaleOrder(models.Model):
                 'income': ('income', 'income_other'),
                 'expense': ('expense', 'expense_direct_cost'),
             }
+            # Use with_company context to scope — do NOT filter company_ids in domain
+            # as it is a Many2many in Odoo 19 and scoping via context is more reliable
             return self.env['account.account'].sudo().with_company(company).search([
                 ('account_type', 'in', type_map[account_type]),
                 ('active', '=', True),
-                ('company_ids', 'in', company.id),
             ], limit=1)
 
         # ── Vendor Bill in buying company ─────────────────────────────────
