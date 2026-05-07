@@ -327,90 +327,147 @@ class SaleOrder(models.Model):
             )
 
     def _auto_validate_pickings(self, out_pickings, in_pickings, supplying_company, buying_company):
-        """Immediately validate all pickings for both companies.
-
-        Sequence:
-          1. Validate outgoing pickings in the supplying company first.
-          2. Validate incoming pickings in the buying company next.
-
-        Uses move_line_ids.quantity (Odoo 19) to set done quantities,
-        then calls _action_done() directly to avoid wizard pop-ups.
+        """Validate all pickings immediately by calling _action_done() directly
+        on the stock moves, bypassing button_validate() which returns wizard
+        actions in Odoo 19 Community even with skip_backorder context.
         """
 
         def _validate(pickings, company):
-            for picking in pickings.with_company(company):
+            for picking in pickings.sudo().with_company(company):
                 if picking.state in ('done', 'cancel'):
                     continue
                 try:
-                    # Ensure move lines exist — create them if missing
-                    if not picking.move_line_ids:
-                        picking._action_assign()
+                    # Step 1: reserve stock
+                    if picking.state not in ('assigned',):
+                        picking.action_assign()
 
-                    # Set qty_done on move lines (Odoo 17-19 API)
+                    # Step 2: set quantity done on every move line
                     for ml in picking.move_line_ids:
                         ml.quantity = ml.reserved_qty or ml.move_id.product_uom_qty
 
-                    # Also set quantity on moves themselves as a fallback
+                    # Step 3: for moves that have no lines yet, set quantity
                     for move in picking.move_ids.filtered(
                         lambda m: m.state not in ('done', 'cancel')
                     ):
-                        move.quantity = move.product_uom_qty
+                        if not move.move_line_ids:
+                            move.quantity = move.product_uom_qty
 
-                    picking.with_context(
+                    # Step 4: call _action_done() directly on the moves
+                    # This is the internal path that button_validate eventually
+                    # calls — using it directly avoids all wizard returns
+                    moves_to_validate = picking.move_ids.filtered(
+                        lambda m: m.state not in ('done', 'cancel')
+                    )
+                    moves_to_validate.with_context(
                         skip_backorder=True,
-                        skip_immediate=True,
                         skip_sms=True,
                     )._action_done()
-                    _logger.info('ICF: Auto-validated picking %s (%s)', picking.name, company.name)
+
+                    _logger.info('ICF: Validated picking %s (%s)', picking.name, company.name)
 
                 except Exception as exc:
                     _logger.warning(
-                        'ICF: Could not auto-validate picking %s (%s): %s',
-                        picking.name, company.name, exc
+                        'ICF: Could not validate picking %s (%s): %s',
+                        picking.name, company.name, exc,
                     )
 
         _validate(out_pickings, supplying_company)
         _validate(in_pickings, buying_company)
 
     def _create_intercompany_invoices(self, po, ic_so, buying_company, supplying_company):
-        """Create and confirm:
-          - A vendor bill (in_invoice) in the buying company from the PO
-          - A customer invoice (out_invoice) in the supplying company from the SO
-
-        Both are posted immediately so they appear in accounting.
+        """Create and post:
+          - A vendor bill (in_invoice) in the buying company from the PO lines
+          - A customer invoice (out_invoice) in the supplying company from the SO lines
+        Compatible with both standard Odoo 19 and base_accounting_kit.
         """
+        AccountMove = self.env['account.move'].sudo()
+
+        def _get_account(product, company, account_type):
+            """Find income or expense account for a product.
+            Tries get_product_accounts() first, falls back to account_type search.
+            account_type: 'income' or 'expense'
+            """
+            try:
+                accounts = product.with_company(company)\
+                    .product_tmpl_id.get_product_accounts()
+                acc = accounts.get(account_type)
+                if acc:
+                    return acc
+            except Exception:
+                pass
+            type_map = {
+                'income': ('income', 'income_other'),
+                'expense': ('expense', 'expense_direct_cost'),
+            }
+            return self.env['account.account'].sudo().with_company(company).search([
+                ('account_type', 'in', type_map[account_type]),
+                ('deprecated', '=', False),
+                ('company_ids', 'in', company.id),
+            ], limit=1)
 
         # ── Vendor Bill in buying company ─────────────────────────────────
         try:
-            bill = po.with_company(buying_company).action_create_invoice()
-            # action_create_invoice returns an action dict; get the actual record
-            bill_id = bill.get('res_id') if isinstance(bill, dict) else None
-            if bill_id:
-                vendor_bill = self.env['account.move'].sudo().browse(bill_id)
-            else:
-                # Fallback: find the draft bill linked to this PO
-                vendor_bill = self.env['account.move'].sudo().search([
-                    ('purchase_id', '=', po.id),
-                    ('move_type', '=', 'in_invoice'),
-                    ('state', '=', 'draft'),
-                ], limit=1)
-
-            if vendor_bill:
+            bill_lines = []
+            for pol in po.order_line:
+                account = _get_account(pol.product_id, buying_company, 'expense')
+                if not account:
+                    _logger.warning('ICF: No expense account for %s in %s',
+                                    pol.product_id.display_name, buying_company.name)
+                    continue
+                bill_lines.append((0, 0, {
+                    'product_id': pol.product_id.id,
+                    'name': pol.name or pol.product_id.display_name,
+                    'quantity': pol.product_qty,
+                    'product_uom_id': pol.product_uom_id.id,
+                    'price_unit': pol.price_unit,
+                    'account_id': account.id,
+                }))
+            if bill_lines:
+                vendor_bill = AccountMove.with_company(buying_company).create({
+                    'move_type': 'in_invoice',
+                    'partner_id': supplying_company.intercompany_partner_id.id,
+                    'company_id': buying_company.id,
+                    'invoice_origin': po.name,
+                    'invoice_line_ids': bill_lines,
+                })
                 vendor_bill.with_company(buying_company).action_post()
-                _logger.info('ICF: Posted vendor bill %s in %s', vendor_bill.name, buying_company.name)
+                _logger.info('ICF: Posted vendor bill %s in %s',
+                             vendor_bill.name, buying_company.name)
+            else:
+                _logger.warning('ICF: No bill lines for PO %s — bill skipped', po.name)
         except Exception as exc:
             _logger.warning('ICF: Could not create vendor bill for PO %s: %s', po.name, exc)
 
         # ── Customer Invoice in supplying company ─────────────────────────
         try:
-            # _create_invoices on sale.order returns account.move recordset
-            customer_invoice = ic_so.with_company(supplying_company)._create_invoices()
-            if customer_invoice:
+            inv_lines = []
+            for sol in ic_so.order_line:
+                account = _get_account(sol.product_id, supplying_company, 'income')
+                if not account:
+                    _logger.warning('ICF: No income account for %s in %s',
+                                    sol.product_id.display_name, supplying_company.name)
+                    continue
+                inv_lines.append((0, 0, {
+                    'product_id': sol.product_id.id,
+                    'name': sol.name or sol.product_id.display_name,
+                    'quantity': sol.product_uom_qty,
+                    'product_uom_id': sol.product_uom_id.id,
+                    'price_unit': sol.price_unit,
+                    'account_id': account.id,
+                }))
+            if inv_lines:
+                customer_invoice = AccountMove.with_company(supplying_company).create({
+                    'move_type': 'out_invoice',
+                    'partner_id': buying_company.intercompany_partner_id.id,
+                    'company_id': supplying_company.id,
+                    'invoice_origin': ic_so.name,
+                    'invoice_line_ids': inv_lines,
+                })
                 customer_invoice.with_company(supplying_company).action_post()
-                _logger.info(
-                    'ICF: Posted customer invoice %s in %s',
-                    customer_invoice.name, supplying_company.name,
-                )
+                _logger.info('ICF: Posted customer invoice %s in %s',
+                             customer_invoice.name, supplying_company.name)
+            else:
+                _logger.warning('ICF: No invoice lines for SO %s — invoice skipped', ic_so.name)
         except Exception as exc:
             _logger.warning('ICF: Could not create customer invoice for SO %s: %s', ic_so.name, exc)
 

@@ -23,6 +23,7 @@ Works for any number of companies sharing the same Odoo database.
         'sale_stock',
         'purchase_stock',
         'account',
+        'base_accounting_kit',
     ],
     'data': [
         'security/ir.model.access.csv',
