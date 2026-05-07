@@ -28,6 +28,15 @@ class ResCompany(models.Model):
              'buying company.',
     )
 
+    intercompany_auto_validate_pickings = fields.Boolean(
+        string='Auto-Validate Stock Moves',
+        default=False,
+        help='Automatically validate the delivery in the supplying company '
+             'and the receipt in the buying company. '
+             'Enable this when companies share the same physical warehouse '
+             'and stock moves are purely bookkeeping entries between legal entities.',
+    )
+
     intercompany_search_all_companies = fields.Boolean(
         string='Search All Companies for Stock',
         default=True,

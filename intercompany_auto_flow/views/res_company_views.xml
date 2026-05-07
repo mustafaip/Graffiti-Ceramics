@@ -19,6 +19,8 @@
                                    widget="boolean_toggle"/>
                             <field name="intercompany_purchase_auto_confirm"
                                    widget="boolean_toggle"/>
+                            <field name="intercompany_auto_validate_pickings"
+                                   widget="boolean_toggle"/>
                         </group>
                         <group string="Supplier Search">
                             <field name="intercompany_search_all_companies"
@@ -41,10 +43,16 @@
                                     (vendor = supplying company).</li>
                                 <li>Create a <b>Sales Order</b> in the <em>supplying</em>
                                     company (customer = this company).</li>
-                                <li>Trigger all intercompany stock moves automatically.</li>
+                                <li>Confirm both documents automatically.</li>
+                                <li>If <b>Auto-Validate Stock Moves</b> is enabled:
+                                    validate the delivery in the supplying company
+                                    and the receipt in this company immediately —
+                                    no manual picking steps required.</li>
                             </ol>
                             All sibling companies participating must also have
                             <b>Intercompany Auto Flow enabled</b>.
+                            Enable <b>Auto-Validate Stock Moves</b> only when companies
+                            share the same physical warehouse.
                         </div>
                     </div>
                 </page>
