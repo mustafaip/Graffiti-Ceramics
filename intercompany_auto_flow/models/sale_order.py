@@ -380,23 +380,20 @@ class SaleOrder(models.Model):
             )
 
     def _auto_validate_pickings(self, out_pickings, in_pickings, supplying_company, buying_company):
-        """Validate all pickings immediately by calling _action_done() directly
-        on the stock moves, bypassing button_validate() which returns wizard
-        actions in Odoo 19 Community even with skip_backorder context.
-        """
+        """Validate all pickings using button_validate() — confirmed working in bash tests."""
 
         def _validate(pickings, company):
             for picking in pickings.sudo().with_company(company):
+                _logger.warning('ICF VALIDATE: Picking %s state=%s company=%s move_lines=%s',
+                                picking.name, picking.state, company.name, len(picking.move_line_ids))
                 if picking.state in ('done', 'cancel'):
+                    _logger.warning('ICF VALIDATE: Skipping %s already %s', picking.name, picking.state)
                     continue
                 try:
-                    # Step 1: reserve stock
                     if picking.state not in ('assigned',):
+                        _logger.warning('ICF VALIDATE: Assigning %s', picking.name)
                         picking.action_assign()
 
-                    # Step 2: set quantity done on every move line
-                    # In Odoo 19 the reserved qty field on stock.move.line
-                    # is quantity_product_uom (previously reserved_qty / reserved_uom_qty)
                     for ml in picking.move_line_ids:
                         reserved = (
                             getattr(ml, 'quantity_product_uom', None)
@@ -406,27 +403,25 @@ class SaleOrder(models.Model):
                         )
                         ml.quantity = reserved
 
-                    # Step 3: for moves that have no lines yet, set quantity
                     for move in picking.move_ids.filtered(
                         lambda m: m.state not in ('done', 'cancel')
                     ):
                         if not move.move_line_ids:
                             move.quantity = move.product_uom_qty
 
-                    # button_validate() is the correct method in this Odoo 19 build
-                    # _action_done() returns True but does not change state
+                    _logger.warning('ICF VALIDATE: Calling button_validate on %s', picking.name)
                     result = picking.with_context(
                         skip_sms=True,
                         skip_backorder=True,
                         immediate_transfer=True,
                     ).button_validate()
-                    # If result is a dict it means a wizard was returned — handle it
+                    _logger.warning('ICF VALIDATE: Result=%s state_after=%s', result, picking.state)
+
                     if isinstance(result, dict) and result.get('res_model'):
-                        # Wizard returned — try to auto-process it
                         wizard_model = result['res_model']
+                        _logger.warning('ICF VALIDATE: Wizard returned: %s', wizard_model)
                         if 'backorder' in wizard_model.lower():
-                            # Backorder wizard — create no backorder
-                            wizard = env[wizard_model].with_context(
+                            wizard = picking.env[wizard_model].with_context(
                                 result.get('context', {})
                             ).create({})
                             if hasattr(wizard, 'process'):
@@ -434,14 +429,12 @@ class SaleOrder(models.Model):
                             elif hasattr(wizard, 'action_cancel_backorder'):
                                 wizard.action_cancel_backorder()
 
-                    _logger.warning('ICF: Validated picking %s (%s)', picking.name, company.name)
+                    _logger.warning('ICF VALIDATE: Done %s final_state=%s', picking.name, picking.state)
 
                 except Exception as exc:
-                    _logger.warning(
-                        'ICF: Could not validate picking %s (%s): %s',
-                        picking.name, company.name, exc,
-                    )
+                    _logger.warning('ICF VALIDATE: Error on %s: %s', picking.name, exc)
 
+        _logger.warning('ICF VALIDATE: Starting out=%s in=%s', out_pickings.ids, in_pickings.ids)
         _validate(out_pickings, supplying_company)
         _validate(in_pickings, buying_company)
 
