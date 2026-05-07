@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- ── Smart button on Sale Order ────────────────────────────────────── -->
+    <!-- ── Smart buttons on Sale Order ───────────────────────────────────── -->
     <record id="view_sale_order_form_intercompany_flow" model="ir.ui.view">
         <field name="name">sale.order.form.intercompany.flow</field>
         <field name="model">sale.order</field>
@@ -16,6 +16,15 @@
                     <field name="intercompany_flow_count"
                            widget="statinfo"
                            string="IC Flows"/>
+                </button>
+                <button class="oe_stat_button"
+                        type="object"
+                        name="action_view_intercompany_invoices"
+                        icon="fa-file-text-o"
+                        invisible="intercompany_invoice_count == 0">
+                    <field name="intercompany_invoice_count"
+                           widget="statinfo"
+                           string="IC Invoices"/>
                 </button>
             </div>
         </field>

@@ -51,6 +51,16 @@ class IntercompanyFlowLog(models.Model):
         help='SO raised in the supplying company to fulfil the PO.',
         ondelete='set null',
     )
+    customer_invoice_id = fields.Many2one(
+        'account.move', string='Customer Invoice (Supplying Co.)',
+        help='Customer invoice posted in the supplying company.',
+        ondelete='set null',
+    )
+    vendor_bill_id = fields.Many2one(
+        'account.move', string='Vendor Bill (Buying Co.)',
+        help='Vendor bill posted in the buying company.',
+        ondelete='set null',
+    )
 
     # ── Traceability ─────────────────────────────────────────────────────────
     # We store move counts rather than Many2many relations to avoid custom

@@ -19,6 +19,8 @@
                 <field name="origin_sale_id"/>
                 <field name="purchase_order_id"/>
                 <field name="intercompany_sale_id"/>
+                <field name="vendor_bill_id" optional="show"/>
+                <field name="customer_invoice_id" optional="show"/>
                 <field name="state"
                        widget="badge"
                        decoration-success="state == 'done'"
@@ -80,6 +82,8 @@
                         <field name="origin_sale_id" readonly="1"/>
                         <field name="purchase_order_id" readonly="1"/>
                         <field name="intercompany_sale_id" readonly="1"/>
+                        <field name="vendor_bill_id" readonly="1"/>
+                        <field name="customer_invoice_id" readonly="1"/>
                     </group>
                     <group string="Stock" invisible="state == 'error'">
                         <field name="stock_picking_out_count" readonly="1"/>
