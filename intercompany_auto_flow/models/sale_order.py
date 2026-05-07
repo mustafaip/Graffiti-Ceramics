@@ -360,13 +360,9 @@ class SaleOrder(models.Model):
                         if not move.move_line_ids:
                             move.quantity = move.product_uom_qty
 
-                    # Step 4: call _action_done() directly on the moves
-                    # This is the internal path that button_validate eventually
-                    # calls — using it directly avoids all wizard returns
-                    moves_to_validate = picking.move_ids.filtered(
-                        lambda m: m.state not in ('done', 'cancel')
-                    )
-                    moves_to_validate.with_context(
+                    # Step 4: call _action_done() on the picking itself
+                    # (not on moves — in Odoo 19 _action_done lives on stock.picking)
+                    picking.with_context(
                         skip_backorder=True,
                         skip_sms=True,
                     )._action_done()
@@ -414,8 +410,24 @@ class SaleOrder(models.Model):
                 ('active', '=', True),
             ], limit=1)
 
+        def _get_journal(company, journal_type):
+            """Find a purchase or sale journal for the given company.
+            journal_type: 'purchase' or 'sale'
+            """
+            Journal = self.env['account.journal'].sudo().with_company(company)
+            journal = Journal.search([
+                ('type', '=', journal_type),
+                ('company_id', '=', company.id),
+            ], limit=1)
+            if not journal:
+                _logger.warning('ICF: No %s journal found in %s', journal_type, company.name)
+            return journal
+
         # ── Vendor Bill in buying company ─────────────────────────────────
         try:
+            purchase_journal = _get_journal(buying_company, 'purchase')
+            if not purchase_journal:
+                raise UserError(f'No purchase journal in {buying_company.name}')
             bill_lines = []
             for pol in po.order_line:
                 account = _get_account(pol.product_id, buying_company, 'expense')
@@ -434,6 +446,7 @@ class SaleOrder(models.Model):
             if bill_lines:
                 vendor_bill = AccountMove.with_company(buying_company).create({
                     'move_type': 'in_invoice',
+                    'journal_id': purchase_journal.id,
                     'partner_id': supplying_company.intercompany_partner_id.id,
                     'company_id': buying_company.id,
                     'invoice_origin': po.name,
@@ -449,6 +462,9 @@ class SaleOrder(models.Model):
 
         # ── Customer Invoice in supplying company ─────────────────────────
         try:
+            sale_journal = _get_journal(supplying_company, 'sale')
+            if not sale_journal:
+                raise UserError(f'No sale journal in {supplying_company.name}')
             inv_lines = []
             for sol in ic_so.order_line:
                 account = _get_account(sol.product_id, supplying_company, 'income')
@@ -467,6 +483,7 @@ class SaleOrder(models.Model):
             if inv_lines:
                 customer_invoice = AccountMove.with_company(supplying_company).create({
                     'move_type': 'out_invoice',
+                    'journal_id': sale_journal.id,
                     'partner_id': buying_company.intercompany_partner_id.id,
                     'company_id': supplying_company.id,
                     'invoice_origin': ic_so.name,
