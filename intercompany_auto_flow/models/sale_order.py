@@ -393,12 +393,8 @@ class SaleOrder(models.Model):
                         if not move.move_line_ids:
                             move.quantity = move.product_uom_qty
 
-                    # Step 4: call _action_done() on the picking with cancel_backorder
-                    # In Odoo 19, _action_done accepts cancel_backorder=True directly
-                    # which suppresses the backorder wizard without needing context
-                    picking.with_context(skip_sms=True)._action_done(
-                        cancel_backorder=True
-                    )
+                    # Step 4: _action_done() takes no parameters in Odoo 19
+                    picking.with_context(skip_sms=True)._action_done()
 
                     _logger.info('ICF: Validated picking %s (%s)', picking.name, company.name)
 
@@ -459,8 +455,6 @@ class SaleOrder(models.Model):
         # ── Vendor Bill in buying company ─────────────────────────────────
         try:
             purchase_journal = _get_journal(buying_company, 'purchase')
-            if not purchase_journal:
-                raise UserError(f'No purchase journal in {buying_company.name}')
             bill_lines = []
             for pol in po.order_line:
                 account = _get_account(pol.product_id, buying_company, 'expense')
@@ -477,17 +471,23 @@ class SaleOrder(models.Model):
                     'account_id': account.id,
                 }))
             if bill_lines:
-                vendor_bill = AccountMove.with_company(buying_company).create({
+                bill_vals = {
                     'move_type': 'in_invoice',
-                    'journal_id': purchase_journal.id,
                     'partner_id': supplying_company.intercompany_partner_id.id,
                     'company_id': buying_company.id,
                     'invoice_origin': po.name,
                     'invoice_line_ids': bill_lines,
-                })
-                vendor_bill.with_company(buying_company).action_post()
-                _logger.info('ICF: Posted vendor bill %s in %s',
-                             vendor_bill.name, buying_company.name)
+                }
+                if purchase_journal:
+                    bill_vals['journal_id'] = purchase_journal.id
+                vendor_bill = AccountMove.with_company(buying_company).create(bill_vals)
+                if purchase_journal:
+                    vendor_bill.with_company(buying_company).action_post()
+                    _logger.info('ICF: Posted vendor bill %s in %s',
+                                 vendor_bill.name, buying_company.name)
+                else:
+                    _logger.warning('ICF: Vendor bill %s created as draft in %s — no purchase journal found, please post manually',
+                                    vendor_bill.name, buying_company.name)
             else:
                 _logger.warning('ICF: No bill lines for PO %s — bill skipped', po.name)
         except Exception as exc:
@@ -496,8 +496,6 @@ class SaleOrder(models.Model):
         # ── Customer Invoice in supplying company ─────────────────────────
         try:
             sale_journal = _get_journal(supplying_company, 'sale')
-            if not sale_journal:
-                raise UserError(f'No sale journal in {supplying_company.name}')
             inv_lines = []
             for sol in ic_so.order_line:
                 account = _get_account(sol.product_id, supplying_company, 'income')
@@ -514,17 +512,23 @@ class SaleOrder(models.Model):
                     'account_id': account.id,
                 }))
             if inv_lines:
-                customer_invoice = AccountMove.with_company(supplying_company).create({
+                inv_vals = {
                     'move_type': 'out_invoice',
-                    'journal_id': sale_journal.id,
                     'partner_id': buying_company.intercompany_partner_id.id,
                     'company_id': supplying_company.id,
                     'invoice_origin': ic_so.name,
                     'invoice_line_ids': inv_lines,
-                })
-                customer_invoice.with_company(supplying_company).action_post()
-                _logger.info('ICF: Posted customer invoice %s in %s',
-                             customer_invoice.name, supplying_company.name)
+                }
+                if sale_journal:
+                    inv_vals['journal_id'] = sale_journal.id
+                customer_invoice = AccountMove.with_company(supplying_company).create(inv_vals)
+                if sale_journal:
+                    customer_invoice.with_company(supplying_company).action_post()
+                    _logger.info('ICF: Posted customer invoice %s in %s',
+                                 customer_invoice.name, supplying_company.name)
+                else:
+                    _logger.warning('ICF: Customer invoice %s created as draft in %s — no sale journal found, please post manually',
+                                    customer_invoice.name, supplying_company.name)
             else:
                 _logger.warning('ICF: No invoice lines for SO %s — invoice skipped', ic_so.name)
         except Exception as exc:
