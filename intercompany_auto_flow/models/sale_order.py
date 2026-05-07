@@ -36,7 +36,7 @@ class SaleOrder(models.Model):
     def action_confirm(self):
         res = super().action_confirm()
         for order in self:
-            _logger.info(
+            _logger.warning(
                 'ICF CHECK: SO %s | company=%s | auto_flow=%s | is_ic_so=%s',
                 order.name,
                 order.company_id.name,
@@ -67,7 +67,7 @@ class SaleOrder(models.Model):
         """
         self.ensure_one()
         selling_company = self.company_id
-        _logger.info('ICF: _trigger_intercompany_flow called for SO %s (%s lines)', self.name, len(self.order_line))
+        _logger.warning('ICF: _trigger_intercompany_flow called for SO %s (%s lines)', self.name, len(self.order_line))
 
         for line in self.order_line.filtered(
             lambda l: l.product_id and l.product_id.type != 'service'
@@ -76,7 +76,7 @@ class SaleOrder(models.Model):
                           or l.product_id.type == 'product'
                       )
         ):
-            _logger.info(
+            _logger.warning(
                 'ICF: Processing line — product=%s type=%s is_storable=%s',
                 line.product_id.display_name,
                 line.product_id.type,
@@ -89,7 +89,7 @@ class SaleOrder(models.Model):
             if shortage <= 0:
                 continue  # Enough local stock — nothing to do
 
-            _logger.info(
+            _logger.warning(
                 'ICF: %s needs %.2f of %s; local %.2f -> shortage %.2f',
                 selling_company.name, needed_qty,
                 line.product_id.display_name, local_qty, shortage,
@@ -106,7 +106,7 @@ class SaleOrder(models.Model):
             # ── Single-source: best company alone covers the shortage ──────
             best_company, best_qty = ranked[0]
             if best_qty >= shortage:
-                _logger.info(
+                _logger.warning(
                     'ICF: Single-source -> %s has %.2f (need %.2f)',
                     best_company.name, best_qty, shortage,
                 )
@@ -120,7 +120,7 @@ class SaleOrder(models.Model):
 
             # ── Split-source: spread across multiple companies ────────────
             total_available = sum(qty for _, qty in ranked)
-            _logger.info(
+            _logger.warning(
                 'ICF: Split-source needed — total available %.2f across %d '
                 'companies for shortage %.2f',
                 total_available, len(ranked), shortage,
@@ -131,7 +131,7 @@ class SaleOrder(models.Model):
                 if remaining <= 0:
                     break
                 portion = min(avail_qty, remaining)
-                _logger.info(
+                _logger.warning(
                     'ICF: Sourcing %.2f from %s (avail %.2f)',
                     portion, supplier_company.name, avail_qty,
                 )
@@ -185,7 +185,7 @@ class SaleOrder(models.Model):
         ranked = []
         for company in candidates:
             avail = self._get_local_available_qty(product, company)
-            _logger.info(
+            _logger.warning(
                 'ICF: Scanning %s -> %.2f available of %s',
                 company.name, avail, product.display_name,
             )
@@ -362,7 +362,7 @@ class SaleOrder(models.Model):
                     qty=qty, uom=line.product_uom_id.name,
                 )
             )
-            _logger.info('ICF: Complete — PO %s <-> SO %s', po.name, ic_so.name)
+            _logger.warning('ICF: Complete — PO %s <-> SO %s', po.name, ic_so.name)
 
         except Exception as exc:
             log.state = 'error'
@@ -413,10 +413,28 @@ class SaleOrder(models.Model):
                         if not move.move_line_ids:
                             move.quantity = move.product_uom_qty
 
-                    # Step 4: _action_done() takes no parameters in Odoo 19
-                    picking.with_context(skip_sms=True)._action_done()
+                    # button_validate() is the correct method in this Odoo 19 build
+                    # _action_done() returns True but does not change state
+                    result = picking.with_context(
+                        skip_sms=True,
+                        skip_backorder=True,
+                        immediate_transfer=True,
+                    ).button_validate()
+                    # If result is a dict it means a wizard was returned — handle it
+                    if isinstance(result, dict) and result.get('res_model'):
+                        # Wizard returned — try to auto-process it
+                        wizard_model = result['res_model']
+                        if 'backorder' in wizard_model.lower():
+                            # Backorder wizard — create no backorder
+                            wizard = env[wizard_model].with_context(
+                                result.get('context', {})
+                            ).create({})
+                            if hasattr(wizard, 'process'):
+                                wizard.process()
+                            elif hasattr(wizard, 'action_cancel_backorder'):
+                                wizard.action_cancel_backorder()
 
-                    _logger.info('ICF: Validated picking %s (%s)', picking.name, company.name)
+                    _logger.warning('ICF: Validated picking %s (%s)', picking.name, company.name)
 
                 except Exception as exc:
                     _logger.warning(
@@ -436,24 +454,19 @@ class SaleOrder(models.Model):
         AccountMove = self.env['account.move'].sudo()
 
         def _get_account(product, company, account_type):
-            """Find income or expense account for a product.
-            Tries get_product_accounts() first, falls back to account_type search.
-            account_type: 'income' or 'expense'
-            """
+            """Find income or expense account for a product using get_product_accounts."""
             try:
-                accounts = product.with_company(company)\
-                    .product_tmpl_id.get_product_accounts()
-                acc = accounts.get(account_type)
+                accs = product.with_company(company).product_tmpl_id.get_product_accounts()
+                acc = accs.get(account_type)
                 if acc:
                     return acc
             except Exception:
                 pass
+            # Fallback: search by account_type
             type_map = {
                 'income': ('income', 'income_other'),
                 'expense': ('expense', 'expense_direct_cost'),
             }
-            # Use with_company context to scope — do NOT filter company_ids in domain
-            # as it is a Many2many in Odoo 19 and scoping via context is more reliable
             return self.env['account.account'].sudo().with_company(company).search([
                 ('account_type', 'in', type_map[account_type]),
                 ('active', '=', True),
@@ -503,7 +516,7 @@ class SaleOrder(models.Model):
                 vendor_bill = AccountMove.with_company(buying_company).create(bill_vals)
                 if purchase_journal:
                     vendor_bill.with_company(buying_company).action_post()
-                    _logger.info('ICF: Posted vendor bill %s in %s',
+                    _logger.warning('ICF: Posted vendor bill %s in %s',
                                  vendor_bill.name, buying_company.name)
                 else:
                     _logger.warning('ICF: Vendor bill %s created as draft in %s — no purchase journal found, please post manually',
@@ -544,10 +557,10 @@ class SaleOrder(models.Model):
                 customer_invoice = AccountMove.with_company(supplying_company).create(inv_vals)
                 if sale_journal:
                     customer_invoice.with_company(supplying_company).action_post()
-                    _logger.info('ICF: Posted customer invoice %s in %s',
-                                 customer_invoice.name, supplying_company.name)
+                    _logger.warning('ICF: Posted customer invoice %s in %s',
+                                    customer_invoice.name, supplying_company.name)
                 else:
-                    _logger.warning('ICF: Customer invoice %s created as draft in %s — no sale journal found, please post manually',
+                    _logger.warning('ICF: Customer invoice %s created as draft in %s — no sale journal',
                                     customer_invoice.name, supplying_company.name)
             else:
                 _logger.warning('ICF: No invoice lines for SO %s — invoice skipped', ic_so.name)
