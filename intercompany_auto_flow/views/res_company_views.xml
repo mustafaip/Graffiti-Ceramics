@@ -21,6 +21,8 @@
                                    widget="boolean_toggle"/>
                             <field name="intercompany_auto_validate_pickings"
                                    widget="boolean_toggle"/>
+                            <field name="intercompany_auto_invoice"
+                                   widget="boolean_toggle"/>
                         </group>
                         <group string="Supplier Search">
                             <field name="intercompany_search_all_companies"
@@ -40,19 +42,18 @@
                             <ol>
                                 <li>Search sibling companies for available stock.</li>
                                 <li>Create a <b>Purchase Order</b> in <em>this</em> company
-                                    (vendor = supplying company).</li>
+                                    at the product's <b>cost price</b>.</li>
                                 <li>Create a <b>Sales Order</b> in the <em>supplying</em>
-                                    company (customer = this company).</li>
+                                    company at the product's <b>cost price</b>.</li>
                                 <li>Confirm both documents automatically.</li>
                                 <li>If <b>Auto-Validate Stock Moves</b> is enabled:
-                                    validate the delivery in the supplying company
-                                    and the receipt in this company immediately —
-                                    no manual picking steps required.</li>
+                                    validate the delivery and receipt immediately.</li>
+                                <li>If <b>Auto-Create Bills &amp; Invoices</b> is enabled:
+                                    post a vendor bill in this company and a customer
+                                    invoice in the supplying company automatically.</li>
                             </ol>
                             All sibling companies participating must also have
                             <b>Intercompany Auto Flow enabled</b>.
-                            Enable <b>Auto-Validate Stock Moves</b> only when companies
-                            share the same physical warehouse.
                         </div>
                     </div>
                 </page>

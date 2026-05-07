@@ -281,6 +281,15 @@ class SaleOrder(models.Model):
                     buying_company=buying_company,
                 )
 
+            # Step 6: Auto-create bills and invoices if configured
+            if buying_company.intercompany_auto_invoice:
+                self._create_intercompany_invoices(
+                    po=po,
+                    ic_so=ic_so,
+                    buying_company=buying_company,
+                    supplying_company=supplying_company,
+                )
+
             log.state = 'done'
 
             # Step 5: Chatter
@@ -320,54 +329,96 @@ class SaleOrder(models.Model):
     def _auto_validate_pickings(self, out_pickings, in_pickings, supplying_company, buying_company):
         """Immediately validate all pickings for both companies.
 
-        Called when intercompany_auto_validate_pickings is True — typically
-        when companies share a physical warehouse and the stock transfer is
-        a purely legal/accounting movement between entities.
-
         Sequence:
-          1. Validate outgoing pickings in the supplying company first
-             (goods leave B's books).
-          2. Validate incoming pickings in the buying company next
-             (goods arrive on A's books).
+          1. Validate outgoing pickings in the supplying company first.
+          2. Validate incoming pickings in the buying company next.
 
-        For each picking we call _action_done() directly rather than
-        button_validate() to avoid wizard pop-ups (backorder, immediate
-        transfer) that would block the automated flow. We set all move
-        demand quantities as done before calling _action_done().
+        Uses move_line_ids.quantity (Odoo 19) to set done quantities,
+        then calls _action_done() directly to avoid wizard pop-ups.
         """
-        Picking = self.env['stock.picking'].sudo()
 
-        # ── Outgoing (supplying company) ──────────────────────────────────
-        for picking in out_pickings.with_company(supplying_company):
-            if picking.state in ('done', 'cancel'):
-                continue
-            try:
-                # Ensure all move lines have qty_done set
-                for move in picking.move_ids.filtered(lambda m: m.state not in ('done', 'cancel')):
-                    move.quantity = move.product_uom_qty
-                picking.with_context(skip_backorder=True, skip_immediate=True)._action_done()
-                _logger.info('ICF: Auto-validated outgoing picking %s', picking.name)
-            except Exception as exc:
-                _logger.warning('ICF: Could not auto-validate outgoing picking %s: %s', picking.name, exc)
+        def _validate(pickings, company):
+            for picking in pickings.with_company(company):
+                if picking.state in ('done', 'cancel'):
+                    continue
+                try:
+                    # Ensure move lines exist — create them if missing
+                    if not picking.move_line_ids:
+                        picking._action_assign()
 
-        # ── Incoming (buying company) ─────────────────────────────────────
-        for picking in in_pickings.with_company(buying_company):
-            if picking.state in ('done', 'cancel'):
-                continue
-            try:
-                for move in picking.move_ids.filtered(lambda m: m.state not in ('done', 'cancel')):
-                    move.quantity = move.product_uom_qty
-                picking.with_context(skip_backorder=True, skip_immediate=True)._action_done()
-                _logger.info('ICF: Auto-validated incoming picking %s', picking.name)
-            except Exception as exc:
-                _logger.warning('ICF: Could not auto-validate incoming picking %s: %s', picking.name, exc)
+                    # Set qty_done on move lines (Odoo 17-19 API)
+                    for ml in picking.move_line_ids:
+                        ml.quantity = ml.reserved_qty or ml.move_id.product_uom_qty
+
+                    # Also set quantity on moves themselves as a fallback
+                    for move in picking.move_ids.filtered(
+                        lambda m: m.state not in ('done', 'cancel')
+                    ):
+                        move.quantity = move.product_uom_qty
+
+                    picking.with_context(
+                        skip_backorder=True,
+                        skip_immediate=True,
+                        skip_sms=True,
+                    )._action_done()
+                    _logger.info('ICF: Auto-validated picking %s (%s)', picking.name, company.name)
+
+                except Exception as exc:
+                    _logger.warning(
+                        'ICF: Could not auto-validate picking %s (%s): %s',
+                        picking.name, company.name, exc
+                    )
+
+        _validate(out_pickings, supplying_company)
+        _validate(in_pickings, buying_company)
+
+    def _create_intercompany_invoices(self, po, ic_so, buying_company, supplying_company):
+        """Create and confirm:
+          - A vendor bill (in_invoice) in the buying company from the PO
+          - A customer invoice (out_invoice) in the supplying company from the SO
+
+        Both are posted immediately so they appear in accounting.
+        """
+
+        # ── Vendor Bill in buying company ─────────────────────────────────
+        try:
+            bill = po.with_company(buying_company).action_create_invoice()
+            # action_create_invoice returns an action dict; get the actual record
+            bill_id = bill.get('res_id') if isinstance(bill, dict) else None
+            if bill_id:
+                vendor_bill = self.env['account.move'].sudo().browse(bill_id)
+            else:
+                # Fallback: find the draft bill linked to this PO
+                vendor_bill = self.env['account.move'].sudo().search([
+                    ('purchase_id', '=', po.id),
+                    ('move_type', '=', 'in_invoice'),
+                    ('state', '=', 'draft'),
+                ], limit=1)
+
+            if vendor_bill:
+                vendor_bill.with_company(buying_company).action_post()
+                _logger.info('ICF: Posted vendor bill %s in %s', vendor_bill.name, buying_company.name)
+        except Exception as exc:
+            _logger.warning('ICF: Could not create vendor bill for PO %s: %s', po.name, exc)
+
+        # ── Customer Invoice in supplying company ─────────────────────────
+        try:
+            # _create_invoices on sale.order returns account.move recordset
+            customer_invoice = ic_so.with_company(supplying_company)._create_invoices()
+            if customer_invoice:
+                customer_invoice.with_company(supplying_company).action_post()
+                _logger.info(
+                    'ICF: Posted customer invoice %s in %s',
+                    customer_invoice.name, supplying_company.name,
+                )
+        except Exception as exc:
+            _logger.warning('ICF: Could not create customer invoice for SO %s: %s', ic_so.name, exc)
 
     def _create_intercompany_po(self, line, qty, buying_company, supplying_company):
-        """Create a Purchase Order in *buying_company*."""
-        supplier_info = line.product_id.seller_ids.filtered(
-            lambda s: s.partner_id == supplying_company.intercompany_partner_id
-        )[:1]
-        price_unit = supplier_info.price if supplier_info else line.product_id.standard_price
+        """Create a Purchase Order in *buying_company* at cost price."""
+        # Use the product's cost price in the supplying company's context
+        # so both sides of the intercompany transaction use the same value
+        price_unit = line.product_id.with_company(supplying_company).standard_price
 
         return self.env['purchase.order'].sudo().with_company(buying_company).create({
             'partner_id': supplying_company.intercompany_partner_id.id,
@@ -392,7 +443,8 @@ class SaleOrder(models.Model):
         intentionally skipped — the supplying company is fulfilling from
         its own confirmed stock, not re-sourcing further up the chain.
         """
-        price_unit = line.product_id.with_company(supplying_company).lst_price
+        # Always use cost price for intercompany — not the sales list price
+        price_unit = line.product_id.with_company(supplying_company).standard_price
 
         return self.env['sale.order'].sudo().with_company(supplying_company).create({
             'partner_id': buying_company.intercompany_partner_id.id,

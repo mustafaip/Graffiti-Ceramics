@@ -37,6 +37,14 @@ class ResCompany(models.Model):
              'and stock moves are purely bookkeeping entries between legal entities.',
     )
 
+    intercompany_auto_invoice = fields.Boolean(
+        string='Auto-Create Intercompany Bills & Invoices',
+        default=False,
+        help='Automatically create and confirm a vendor bill in the buying '
+             'company and a customer invoice in the supplying company after '
+             'the intercompany stock moves are validated.',
+    )
+
     intercompany_search_all_companies = fields.Boolean(
         string='Search All Companies for Stock',
         default=True,
