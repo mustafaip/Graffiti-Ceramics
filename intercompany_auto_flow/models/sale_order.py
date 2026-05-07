@@ -205,7 +205,7 @@ class SaleOrder(models.Model):
                 'Please source manually.',
                 product=line.product_id.display_name,
                 qty=shortage,
-                uom=line.product_uom.name,
+                uom=line.product_uom_id.name,
             )
         )
 
@@ -218,7 +218,7 @@ class SaleOrder(models.Model):
                 '<b>%(unfulfilled).2f %(uom)s still unfulfilled</b> — '
                 'please source the remainder manually.',
                 product=line.product_id.display_name,
-                uom=line.product_uom.name,
+                uom=line.product_uom_id.name,
                 shortage=shortage,
                 sourced=sourced,
                 unfulfilled=unfulfilled,
@@ -239,7 +239,7 @@ class SaleOrder(models.Model):
             'supplying_company_id': supplying_company.id,
             'product_id': line.product_id.id,
             'product_qty': qty,
-            'product_uom_id': line.product_uom.id,
+            'product_uom_id': line.product_uom_id.id,
             'state': 'draft',
         })
 
@@ -297,7 +297,7 @@ class SaleOrder(models.Model):
                     so_id=ic_so.id, so_name=ic_so.name,
                     supplier=supplying_company.name,
                     product=line.product_id.display_name,
-                    qty=qty, uom=line.product_uom.name,
+                    qty=qty, uom=line.product_uom_id.name,
                 )
             )
             _logger.info('ICF: Complete — PO %s <-> SO %s', po.name, ic_so.name)
@@ -376,7 +376,7 @@ class SaleOrder(models.Model):
             'order_line': [(0, 0, {
                 'product_id': line.product_id.id,
                 'product_qty': qty,
-                'product_uom': line.product_uom.id,
+                'product_uom_id': line.product_uom_id.id,
                 'price_unit': price_unit,
                 'name': line.product_id.display_name,
                 'date_planned': fields.Datetime.now(),
@@ -403,7 +403,7 @@ class SaleOrder(models.Model):
             'order_line': [(0, 0, {
                 'product_id': line.product_id.id,
                 'product_uom_qty': qty,
-                'product_uom': line.product_uom.id,
+                'product_uom_id': line.product_uom_id.id,
                 'price_unit': price_unit,
                 'name': line.product_id.display_name,
             })],
