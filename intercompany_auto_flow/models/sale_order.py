@@ -342,8 +342,9 @@ class SaleOrder(models.Model):
                         picking.action_assign()
 
                     # Step 2: set quantity done on every move line
+                    # reserved_uom_qty is the Odoo 19 field name (was reserved_qty)
                     for ml in picking.move_line_ids:
-                        ml.quantity = ml.reserved_qty or ml.move_id.product_uom_qty
+                        ml.quantity = ml.reserved_uom_qty or ml.move_id.product_uom_qty
 
                     # Step 3: for moves that have no lines yet, set quantity
                     for move in picking.move_ids.filtered(
@@ -401,7 +402,7 @@ class SaleOrder(models.Model):
             }
             return self.env['account.account'].sudo().with_company(company).search([
                 ('account_type', 'in', type_map[account_type]),
-                ('deprecated', '=', False),
+                ('active', '=', True),
                 ('company_ids', 'in', company.id),
             ], limit=1)
 
