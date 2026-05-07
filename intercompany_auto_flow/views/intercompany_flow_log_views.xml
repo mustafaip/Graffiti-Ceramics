@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── List View ─────────────────────────────────────────────────────── -->
+    <record id="view_intercompany_flow_log_list" model="ir.ui.view">
+        <field name="name">intercompany.flow.log.list</field>
+        <field name="model">intercompany.flow.log</field>
+        <field name="arch" type="xml">
+            <list string="Intercompany Flow Logs"
+                  decoration-danger="state == 'error'"
+                  decoration-success="state == 'done'">
+                <field name="name"/>
+                <field name="create_date" string="Date"/>
+                <field name="buying_company_id"/>
+                <field name="supplying_company_id"/>
+                <field name="product_id"/>
+                <field name="product_qty"/>
+                <field name="product_uom_id" optional="show"/>
+                <field name="origin_sale_id"/>
+                <field name="purchase_order_id"/>
+                <field name="intercompany_sale_id"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state == 'draft'"
+                       decoration-danger="state == 'error'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form View ─────────────────────────────────────────────────────── -->
+    <record id="view_intercompany_flow_log_form" model="ir.ui.view">
+        <field name="name">intercompany.flow.log.form</field>
+        <field name="model">intercompany.flow.log</field>
+        <field name="arch" type="xml">
+            <form string="Intercompany Flow Log">
+                <header>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,done,error"/>
+                </header>
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button"
+                                type="object"
+                                name="action_view_out_pickings"
+                                icon="fa-truck"
+                                invisible="stock_picking_out_count == 0">
+                            <field name="stock_picking_out_count"
+                                   widget="statinfo"
+                                   string="Outgoing Pickings"/>
+                        </button>
+                        <button class="oe_stat_button"
+                                type="object"
+                                name="action_view_in_pickings"
+                                icon="fa-sign-in"
+                                invisible="stock_picking_in_count == 0">
+                            <field name="stock_picking_in_count"
+                                   widget="statinfo"
+                                   string="Incoming Pickings"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Companies">
+                            <field name="buying_company_id" readonly="1"/>
+                            <field name="supplying_company_id" readonly="1"/>
+                        </group>
+                        <group string="Product">
+                            <field name="product_id" readonly="1"/>
+                            <field name="product_qty" readonly="1"/>
+                            <field name="product_uom_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Generated Documents">
+                        <field name="origin_sale_id" readonly="1"/>
+                        <field name="purchase_order_id" readonly="1"/>
+                        <field name="intercompany_sale_id" readonly="1"/>
+                    </group>
+                    <group string="Stock" invisible="state == 'error'">
+                        <field name="stock_picking_out_count" readonly="1"/>
+                        <field name="stock_picking_in_count" readonly="1"/>
+                    </group>
+                    <group string="Error Detail" invisible="state != 'error'">
+                        <field name="error_message" readonly="1" widget="text" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search View ───────────────────────────────────────────────────── -->
+    <record id="view_intercompany_flow_log_search" model="ir.ui.view">
+        <field name="name">intercompany.flow.log.search</field>
+        <field name="model">intercompany.flow.log</field>
+        <field name="arch" type="xml">
+            <search string="Intercompany Flow Logs">
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="buying_company_id"/>
+                <field name="supplying_company_id"/>
+                <field name="origin_sale_id"/>
+                <filter string="Done"   name="done"  domain="[('state','=','done')]"/>
+                <filter string="Errors" name="error" domain="[('state','=','error')]"/>
+                <filter string="Draft"  name="draft" domain="[('state','=','draft')]"/>
+                <separator/>
+                <filter string="Group: Buying Company"    name="group_buying"    context="{'group_by': 'buying_company_id'}"/>
+                <filter string="Group: Supplying Company" name="group_supplying" context="{'group_by': 'supplying_company_id'}"/>
+                <filter string="Group: Product"           name="group_product"   context="{'group_by': 'product_id'}"/>
+                <filter string="Group: Status"            name="group_state"     context="{'group_by': 'state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ────────────────────────────────────────────────────────── -->
+    <record id="action_intercompany_flow_log" model="ir.actions.act_window">
+        <field name="name">Intercompany Flow Logs</field>
+        <field name="res_model">intercompany.flow.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_intercompany_flow_log_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No intercompany flows recorded yet.
+            </p>
+            <p>
+                Enable <b>Intercompany Auto Flow</b> on your companies and confirm
+                a Sales Order for a product not in local stock to start.
+            </p>
+        </field>
+    </record>
+
+</odoo>
