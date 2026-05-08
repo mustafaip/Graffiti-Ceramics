@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!--
-        Odoo 19 removed the classic div.settings / div.app_settings_block structure
-        from the base settings view. Rather than chasing moving xpath targets,
-        we provide a dedicated standalone settings form accessible via:
-          Inventory > Configuration > Breakage Settings
+        Standalone settings form - no xpath inheritance needed.
+        Accessible via Inventory > Configuration > Breakage Settings.
     -->
-
-    <!-- Standalone form view for breakage settings -->
     <record id="view_stock_breakage_settings_form" model="ir.ui.view">
         <field name="name">stock.breakage.settings.form</field>
         <field name="model">res.config.settings</field>
@@ -47,17 +43,15 @@
         </field>
     </record>
 
-    <!-- Action to open the breakage settings form -->
     <record id="action_stock_breakage_settings" model="ir.actions.act_window">
         <field name="name">Breakage Settings</field>
         <field name="res_model">res.config.settings</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_stock_breakage_settings_form"/>
-        <field name="target">inline</field>
+        <field name="target">current</field>
         <field name="context">{'module': 'stock_return_breakage'}</field>
     </record>
 
-    <!-- Menu entry under Inventory > Configuration -->
     <menuitem id="menu_stock_breakage_settings"
               name="Breakage Settings"
               parent="stock.menu_stock_configuration"
