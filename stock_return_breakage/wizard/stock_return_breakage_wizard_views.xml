@@ -58,7 +58,6 @@
         </field>
     </record>
 
-    <!-- Action (also used programmatically) -->
     <record id="action_stock_return_breakage_wizard" model="ir.actions.act_window">
         <field name="name">Return with Breakage</field>
         <field name="res_model">stock.return.breakage.wizard</field>
