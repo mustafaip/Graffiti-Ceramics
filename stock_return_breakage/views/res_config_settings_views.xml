@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Odoo 19 removed the classic div.settings / div.app_settings_block structure
+        from the base settings view. Rather than chasing moving xpath targets,
+        we provide a dedicated standalone settings form accessible via:
+          Inventory > Configuration > Breakage Settings
+    -->
+
+    <!-- Standalone form view for breakage settings -->
+    <record id="view_stock_breakage_settings_form" model="ir.ui.view">
+        <field name="name">stock.breakage.settings.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="arch" type="xml">
+            <form string="Return with Breakage Settings">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Return with Breakage</h1>
+                        <p class="text-muted">
+                            Configure the journals and account used when returning
+                            damaged goods via the "Return with Breakage" button on deliveries.
+                        </p>
+                    </div>
+                    <group string="Journals &amp; Accounts" col="2">
+                        <field name="breakage_inventory_journal_id"
+                               string="Inventory Journal"
+                               help="Journal for the stock valuation (inventory) side – credits the stock valuation account."/>
+                        <field name="breakage_expense_journal_id"
+                               string="Damage / Expense Journal"
+                               help="Journal used to post the damage expense entry."/>
+                        <field name="breakage_expense_account_id"
+                               string="Damage Expense Account"
+                               help="Account debited when goods are returned as damaged (e.g. Loss on Damaged Goods)."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="execute"
+                            string="Save"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="s"/>
+                    <button special="cancel"
+                            string="Discard"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open the breakage settings form -->
+    <record id="action_stock_breakage_settings" model="ir.actions.act_window">
+        <field name="name">Breakage Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_stock_breakage_settings_form"/>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'stock_return_breakage'}</field>
+    </record>
+
+    <!-- Menu entry under Inventory > Configuration -->
+    <menuitem id="menu_stock_breakage_settings"
+              name="Breakage Settings"
+              parent="stock.menu_stock_configuration"
+              action="action_stock_breakage_settings"
+              sequence="100"
+              groups="stock.group_stock_manager"/>
+
+</odoo>
