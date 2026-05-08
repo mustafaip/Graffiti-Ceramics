@@ -3,61 +3,56 @@
     <record id="res_config_settings_view_form_breakage" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.breakage</field>
         <field name="model">res.config.settings</field>
-        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <!--
+            Inherit from base (not stock) so we can inject our own
+            app_settings_block into the top-level settings div.
+            This is the stable pattern across Odoo 12-19.
+        -->
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <!--
-                Odoo 19 stock settings: append after the last
-                o_settings_container block in the stock form.
-            -->
-            <xpath expr="//div[hasclass('o_settings_container')]" position="after">
-                <div class="o_settings_container mt16">
-                    <div class="o_setting_box col-xs-12 col-md-6">
-                        <div class="o_setting_left_pane"/>
-                        <div class="o_setting_right_pane">
-                            <div class="o_form_label">
-                                <b>Return with Breakage</b>
-                            </div>
-                            <div class="text-muted">
-                                Configure the journals and expense account used when returning
-                                damaged goods via the "Return with Breakage" button on deliveries.
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block"
+                     data-string="Return with Breakage"
+                     string="Return with Breakage"
+                     data-key="stock_return_breakage">
+                    <h2>Return with Breakage</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <label for="breakage_inventory_journal_id"
+                                       string="Breakage Inventory Journal"/>
+                                <div class="text-muted">
+                                    Journal for the stock valuation (inventory) side –
+                                    credits the stock valuation account.
+                                </div>
+                                <field name="breakage_inventory_journal_id"
+                                       placeholder="e.g. Stock Journal"/>
                             </div>
                         </div>
-                    </div>
-                    <div class="o_setting_box col-xs-12 col-md-6">
-                        <div class="o_setting_left_pane"/>
-                        <div class="o_setting_right_pane">
-                            <label for="breakage_inventory_journal_id"
-                                   string="Breakage Inventory Journal"/>
-                            <div class="text-muted">
-                                Journal for the stock valuation (inventory) side – credits
-                                the stock valuation account.
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <label for="breakage_expense_journal_id"
+                                       string="Breakage Damage / Expense Journal"/>
+                                <div class="text-muted">
+                                    Journal used to post the damage expense entry.
+                                </div>
+                                <field name="breakage_expense_journal_id"
+                                       placeholder="e.g. Miscellaneous / Damage Journal"/>
                             </div>
-                            <field name="breakage_inventory_journal_id"
-                                   placeholder="e.g. Stock Journal"/>
                         </div>
-                    </div>
-                    <div class="o_setting_box col-xs-12 col-md-6">
-                        <div class="o_setting_left_pane"/>
-                        <div class="o_setting_right_pane">
-                            <label for="breakage_expense_journal_id"
-                                   string="Breakage Damage / Expense Journal"/>
-                            <div class="text-muted">
-                                Journal used to post the damage expense entry.
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <label for="breakage_expense_account_id"
+                                       string="Damage Expense Account"/>
+                                <div class="text-muted">
+                                    Account debited when goods are returned as damaged.
+                                </div>
+                                <field name="breakage_expense_account_id"
+                                       placeholder="e.g. 6300 – Damaged Goods Expense"/>
                             </div>
-                            <field name="breakage_expense_journal_id"
-                                   placeholder="e.g. Miscellaneous / Damage Journal"/>
-                        </div>
-                    </div>
-                    <div class="o_setting_box col-xs-12 col-md-6">
-                        <div class="o_setting_left_pane"/>
-                        <div class="o_setting_right_pane">
-                            <label for="breakage_expense_account_id"
-                                   string="Damage Expense Account"/>
-                            <div class="text-muted">
-                                Account debited when goods are returned as damaged.
-                            </div>
-                            <field name="breakage_expense_account_id"
-                                   placeholder="e.g. 6300 – Damaged Goods Expense"/>
                         </div>
                     </div>
                 </div>
