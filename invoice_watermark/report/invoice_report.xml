@@ -4,9 +4,51 @@
     <template id="report_invoice_document_watermark"
               inherit_id="account.report_invoice_document">
 
-        <xpath expr="//div[hasclass('page')]" position="before">
+        <xpath expr="//div[hasclass('page')]" position="inside">
 
             <t t-if="o.payment_watermark and o.payment_watermark != 'none'">
+
+                <div style="
+                    position: absolute;
+                    top: 200px;
+                    left: 0px;
+                    width: 100%;
+                    text-align: center;
+                    z-index: 9999;
+                    pointer-events: none;
+                ">
+                    <span t-attf-style="
+                        display: inline-block;
+                        font-size: 120px;
+                        font-weight: 900;
+                        font-family: Arial, Helvetica, sans-serif;
+                        letter-spacing: 6px;
+                        text-transform: uppercase;
+                        transform: rotate(-45deg);
+                        white-space: nowrap;
+                        opacity: 0.12;
+                        color: #{'#00aa44' if o.payment_watermark == 'cash' else '#0044cc'};
+                        border: 8px solid #{'#00aa44' if o.payment_watermark == 'cash' else '#0044cc'};
+                        padding: 12px 36px;
+                        border-radius: 10px;
+                    ">
+                        <t t-if="o.payment_watermark == 'cash'">CASH</t>
+                        <t t-if="o.payment_watermark == 'credit'">CREDIT</t>
+                    </span>
+                </div>
+
+            </t>
+
+        </xpath>
+
+    </template>
+
+    <template id="report_invoice_layout_watermark"
+              inherit_id="web.external_layout">
+
+        <xpath expr="//div[hasclass('o_main_content')]" position="before">
+
+            <t t-if="o and o._name == 'account.move' and o.payment_watermark and o.payment_watermark != 'none'">
 
                 <div style="
                     position: fixed;
@@ -14,26 +56,26 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    z-index: 0;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     pointer-events: none;
-                    overflow: hidden;
+                    z-index: 9999;
                 ">
                     <span t-attf-style="
-                        font-size: 160px;
+                        display: inline-block;
+                        font-size: 120px;
                         font-weight: 900;
                         font-family: Arial, Helvetica, sans-serif;
-                        letter-spacing: 8px;
+                        letter-spacing: 6px;
                         text-transform: uppercase;
                         transform: rotate(-45deg);
                         white-space: nowrap;
-                        color: #{'rgba(0,160,70,0.15)' if o.payment_watermark == 'cash' else 'rgba(0,90,200,0.15)'};
-                        border: 6px solid #{'rgba(0,160,70,0.12)' if o.payment_watermark == 'cash' else 'rgba(0,90,200,0.12)'};
-                        padding: 10px 30px;
-                        border-radius: 12px;
-                        user-select: none;
+                        opacity: 0.12;
+                        color: #{'#00aa44' if o.payment_watermark == 'cash' else '#0044cc'};
+                        border: 8px solid #{'#00aa44' if o.payment_watermark == 'cash' else '#0044cc'};
+                        padding: 12px 36px;
+                        border-radius: 10px;
                     ">
                         <t t-if="o.payment_watermark == 'cash'">CASH</t>
                         <t t-if="o.payment_watermark == 'credit'">CREDIT</t>
