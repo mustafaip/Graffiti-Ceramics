@@ -16,7 +16,7 @@
                     left:0;
                     width:100%;
                     height:100%;
-                    overflow:hidden;
+                    overflow:visible;
                     z-index:0;
                     pointer-events:none;
                     display:table;
@@ -24,19 +24,19 @@
                     <div style="display:table-cell; text-align:center; vertical-align:middle;">
                         <span t-attf-style="
                             display:inline-block;
-                            font-size:120px;
+                            font-size:80px;
                             font-weight:900;
                             font-family:Arial, sans-serif;
-                            letter-spacing:6px;
+                            letter-spacing:4px;
                             text-transform:uppercase;
                             transform:rotate(-45deg);
                             -webkit-transform:rotate(-45deg);
                             white-space:nowrap;
                             opacity:0.12;
                             color:#{'#009933' if o.payment_watermark == 'cash' else '#0044cc'};
-                            border:8px solid #{'#009933' if o.payment_watermark == 'cash' else '#0044cc'};
-                            padding:12px 36px;
-                            border-radius:10px;
+                            border:6px solid #{'#009933' if o.payment_watermark == 'cash' else '#0044cc'};
+                            padding:10px 28px;
+                            border-radius:8px;
                         ">
                             <t t-if="o.payment_watermark == 'cash'">CASH</t>
                             <t t-if="o.payment_watermark == 'credit'">CREDIT</t>

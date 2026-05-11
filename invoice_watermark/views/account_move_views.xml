@@ -8,10 +8,12 @@
         <field name="arch" type="xml">
 
             <xpath expr="//field[@name='invoice_date_due']" position="after">
+                <label for="payment_watermark"
+                       string="PDF Watermark"
+                       invisible="move_type != 'out_invoice'"/>
                 <field
                     name="payment_watermark"
                     widget="selection"
-                    string="Payment Type"
                     invisible="move_type != 'out_invoice'"
                     options="{'no_open': True}"
                 />
