@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+    =========================================================================
+    Invoice Watermark — QWeb report template inheritance
+    =========================================================================
+    Strategy
+    --------
+    We inherit the outermost layout template used by all Odoo invoice PDFs
+    (account.report_invoice_document) and prepend a full-page watermark
+    <div> before the regular content.
+
+    The watermark is rendered purely with inline CSS so it works with
+    wkhtmltopdf without any additional assets or static files.
+
+    Colour coding
+    -------------
+      CASH   → semi-transparent green  (rgba(0, 160, 70,  0.15))
+      CREDIT → semi-transparent blue   (rgba(0, 90,  200, 0.15))
+
+    The text is rotated −45° and centred using a fixed-position overlay
+    that sits behind the invoice content (z-index: 0 on watermark,
+    content renders above it naturally).
+    =========================================================================
+    -->
+
+    <template id="report_invoice_document_watermark"
+              inherit_id="account.report_invoice_document">
+
+        <!--
+            Inject the watermark block at the very top of the report wrapper,
+            before any existing content.  We target the opening <div> of the
+            report body so the overlay covers the entire page.
+        -->
+        <xpath expr="//div[hasclass('page')]" position="before">
+
+            <!-- Only render when the watermark is not 'none' -->
+            <t t-if="o.payment_watermark and o.payment_watermark != 'none'">
+
+                <!--
+                    Outer container: fixed, full-page, pointer-events disabled
+                    so the watermark never interferes with selectable text.
+                -->
+                <div style="
+                    position: fixed;
+                    top:    0;
+                    left:   0;
+                    width:  100%;
+                    height: 100%;
+                    z-index: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    pointer-events: none;
+                    overflow: hidden;
+                ">
+                    <!--
+                        Inner span: the actual watermark text.
+                        font-size is intentionally large (160px) so it
+                        spans most of the A4 / Letter page width when rotated.
+                    -->
+                    <span t-attf-style="
+                        font-size:      160px;
+                        font-weight:    900;
+                        font-family:    Arial, Helvetica, sans-serif;
+                        letter-spacing: 8px;
+                        text-transform: uppercase;
+                        transform:      rotate(-45deg);
+                        white-space:    nowrap;
+                        color: #{
+                            'rgba(0,160,70,0.15)'
+                            if o.payment_watermark == 'cash'
+                            else 'rgba(0,90,200,0.15)'
+                        };
+                        border: 6px solid #{
+                            'rgba(0,160,70,0.12)'
+                            if o.payment_watermark == 'cash'
+                            else 'rgba(0,90,200,0.12)'
+                        };
+                        padding:        10px 30px;
+                        border-radius:  12px;
+                        user-select:    none;
+                    ">
+                        <!-- Display CASH or CREDIT label -->
+                        <t t-if="o.payment_watermark == 'cash'">CASH</t>
+                        <t t-if="o.payment_watermark == 'credit'">CREDIT</t>
+                    </span>
+                </div>
+
+            </t>
+
+        </xpath>
+
+    </template>
+
+</odoo>
