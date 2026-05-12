@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Invoice Watermark (Cash / Credit)',
-    'version': '19.0.1.0.0',
+    'version': '19.0.2.0.0',
     'category': 'Accounting/Accounting',
-    'summary': 'Add a Cash or Credit watermark to customer invoice PDFs',
+    'summary': 'Auto-stamp Cash or Credit watermark on customer invoice PDFs',
     'description': """
 Invoice Watermark
 =================
-Adds a dropdown field on customer invoices allowing the user to stamp the
-printed PDF with a diagonal "CASH" or "CREDIT" watermark.
+Automatically detects the payment method on customer invoices and stamps
+the printed PDF with a diagonal CASH or CREDIT watermark.
 
-Features
---------
-* Selection field on the invoice form (visible on customer invoices only)
-* Watermark rendered via inline CSS in the QWeb PDF report
-* Zero external dependencies — works with wkhtmltopdf out of the box
-* Compatible with Odoo 19 Community Edition
+Logic
+-----
+- All payments via Cash journal → CASH watermark (green)
+- Any non-cash or mixed payment  → CREDIT watermark (blue)
+- Unpaid invoice                 → No watermark (default)
+
+The watermark field can be overridden manually at any time via the
+PDF Watermark dropdown on the invoice form.
     """,
     'author': 'Custom Development',
     'depends': ['account'],
