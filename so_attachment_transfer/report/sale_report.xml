@@ -1,88 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!--
+        PDF design documents are appended directly to the rendered PDF
+        via IrActionsReport._render_qweb_pdf override in ir_actions_report.py.
+        No QWeb template changes needed for PDF attachments.
 
-    <template id="report_saleorder_attachment_pages"
-              inherit_id="sale.report_saleorder_document">
-
-        <xpath expr="//div[hasclass('page')]" position="after">
-
-            <t t-set="so_attachments" t-value="doc._get_so_design_attachments()"/>
-
-            <t t-if="so_attachments">
-                <div style="page-break-before: always;">
-                    <div class="page">
-
-                        <div style="
-                            border-bottom: 2px solid #cccccc;
-                            margin-bottom: 20px;
-                            padding-bottom: 8px;
-                        ">
-                            <h3 style="
-                                font-family: Arial, sans-serif;
-                                font-size: 16px;
-                                font-weight: bold;
-                                color: #333333;
-                                margin: 0;
-                            ">Design Documents</h3>
-                            <p style="
-                                font-family: Arial, sans-serif;
-                                font-size: 11px;
-                                color: #888888;
-                                margin: 4px 0 0 0;
-                            ">Attached to Quotation <t t-out="doc.name"/></p>
-                        </div>
-
-                        <t t-foreach="so_attachments" t-as="att">
-                            <div style="margin-bottom: 32px;">
-
-                                <p style="
-                                    font-family: Arial, sans-serif;
-                                    font-size: 11px;
-                                    font-weight: bold;
-                                    color: #444444;
-                                    margin-bottom: 8px;
-                                    border-left: 3px solid #7c6db0;
-                                    padding-left: 8px;
-                                "><t t-out="att.name"/></p>
-
-                                <t t-set="att_images" t-value="doc._get_attachment_images(att)"/>
-
-                                <t t-if="att_images">
-                                    <t t-foreach="att_images" t-as="img_b64">
-                                        <div style="page-break-inside: avoid; margin-bottom: 12px;">
-                                            <img
-                                                t-att-src="'data:image/png;base64,%s' % img_b64"
-                                                style="max-width: 100%; height: auto; border: 1px solid #eeeeee; border-radius: 4px;"
-                                            />
-                                        </div>
-                                    </t>
-                                </t>
-
-                                <t t-if="not att_images">
-                                    <p style="
-                                        font-family: Arial, sans-serif;
-                                        font-size: 11px;
-                                        color: #888888;
-                                        font-style: italic;
-                                        background: #f8f8f8;
-                                        padding: 10px 14px;
-                                        border-radius: 4px;
-                                        border: 1px solid #eeeeee;
-                                    ">
-                                        File attached: <strong><t t-out="att.name"/></strong>
-                                        (open the digital copy to view)
-                                    </p>
-                                </t>
-
-                            </div>
-                        </t>
-
-                    </div>
-                </div>
-            </t>
-
-        </xpath>
-
-    </template>
-
+        Image attachments are rendered inline below if needed in future.
+    -->
 </odoo>
