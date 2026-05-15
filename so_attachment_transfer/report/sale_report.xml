@@ -6,7 +6,7 @@
 
         <xpath expr="//div[hasclass('page')]" position="after">
 
-            <t t-set="so_attachments" t-value="doc.so_attachment_ids"/>
+            <t t-set="so_attachments" t-value="doc._get_so_design_attachments()"/>
 
             <t t-if="so_attachments">
                 <div style="page-break-before: always;">
@@ -29,9 +29,7 @@
                                 font-size: 11px;
                                 color: #888888;
                                 margin: 4px 0 0 0;
-                            ">
-                                Attached to Quotation <t t-out="doc.name"/>
-                            </p>
+                            ">Attached to Quotation <t t-out="doc.name"/></p>
                         </div>
 
                         <t t-foreach="so_attachments" t-as="att">
@@ -45,14 +43,12 @@
                                     margin-bottom: 6px;
                                     border-left: 3px solid #7c6db0;
                                     padding-left: 8px;
-                                ">
-                                    <t t-out="att.name"/>
-                                </p>
+                                "><t t-out="att.name"/></p>
 
                                 <t t-if="att.mimetype and 'image' in att.mimetype">
                                     <img
                                         t-att-src="'data:%s;base64,%s' % (att.mimetype, (att.datas or b'').decode('utf-8') if att.datas else '')"
-                                        style="max-width: 100%; height: auto; border: 1px solid #eeeeee; border-radius: 4px;"
+                                        style="max-width:100%; height:auto; border:1px solid #eeeeee; border-radius:4px;"
                                     />
                                 </t>
 
@@ -67,7 +63,7 @@
                                         border-radius: 4px;
                                         border: 1px solid #eeeeee;
                                     ">
-                                        Non-image file — please refer to the digital copy:
+                                        Non-image file — refer to digital copy:
                                         <strong><t t-out="att.name"/></strong>
                                     </p>
                                 </t>

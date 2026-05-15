@@ -6,20 +6,40 @@ from odoo import api, fields, models, _
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    so_attachment_ids = fields.Many2many(
-        comodel_name='ir.attachment',
+    so_design_doc_count = fields.Integer(
         string='Design Documents',
-        compute='_compute_so_attachment_ids',
+        compute='_compute_so_design_doc_count',
     )
 
     @api.depends('name')
-    def _compute_so_attachment_ids(self):
-        """Fetch all ir.attachment records linked to this SO."""
+    def _compute_so_design_doc_count(self):
         for order in self:
-            order.so_attachment_ids = self.env['ir.attachment'].search([
+            order.so_design_doc_count = self.env['ir.attachment'].search_count([
                 ('res_model', '=', 'sale.order'),
                 ('res_id', '=', order.id),
+                ('is_so_design_doc', '=', True),
             ])
+
+    def action_view_so_design_docs(self):
+        """Open attachment list filtered to SO design docs — user attaches here."""
+        self.ensure_one()
+        attachments = self.env['ir.attachment'].search([
+            ('res_model', '=', 'sale.order'),
+            ('res_id', '=', self.id),
+            ('is_so_design_doc', '=', True),
+        ])
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Design Documents',
+            'res_model': 'ir.attachment',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', attachments.ids)],
+            'context': {
+                'default_res_model': 'sale.order',
+                'default_res_id': self.id,
+                'default_is_so_design_doc': True,
+            },
+        }
 
     def action_confirm(self):
         result = super().action_confirm()
@@ -28,12 +48,13 @@ class SaleOrder(models.Model):
             attachments = self.env['ir.attachment'].search([
                 ('res_model', '=', 'sale.order'),
                 ('res_id', '=', order.id),
+                ('is_so_design_doc', '=', True),
             ])
 
             if not attachments:
                 continue
 
-            # Find MOs linked to this SO — try sale_id first, fallback to origin
+            # Find linked MOs — try sale_id first, fallback to origin
             productions = self.env['mrp.production'].search([
                 ('sale_id', '=', order.id),
             ])
@@ -67,7 +88,6 @@ class SaleOrder(models.Model):
         return result
 
     def _copy_attachments_to(self, attachments, res_model, res_id):
-        """Copy attachments to target model/id, tagging each as is_so_design_doc."""
         created = self.env['ir.attachment']
         for att in attachments:
             new_att = self.env['ir.attachment'].create({
@@ -81,3 +101,12 @@ class SaleOrder(models.Model):
             })
             created |= new_att
         return created
+
+    def _get_so_design_attachments(self):
+        """Helper used by QWeb report to fetch design docs."""
+        self.ensure_one()
+        return self.env['ir.attachment'].search([
+            ('res_model', '=', 'sale.order'),
+            ('res_id', '=', self.id),
+            ('is_so_design_doc', '=', True),
+        ])
