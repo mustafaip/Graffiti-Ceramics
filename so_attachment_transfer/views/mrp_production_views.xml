@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_mrp_production_form_design_docs" model="ir.ui.view">
+        <field name="name">mrp.production.form.design.docs</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_view_so_design_docs"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-paperclip"
+                    invisible="so_design_doc_count == 0"
+                >
+                    <field name="so_design_doc_count" widget="statinfo" string="Design Docs"/>
+                </button>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>
