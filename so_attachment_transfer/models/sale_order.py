@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import base64
+import io
 from odoo import api, fields, models, _
 
 
@@ -21,7 +22,6 @@ class SaleOrder(models.Model):
             ])
 
     def action_view_so_design_docs(self):
-        """Open attachment list filtered to SO design docs — user attaches here."""
         self.ensure_one()
         attachments = self.env['ir.attachment'].search([
             ('res_model', '=', 'sale.order'),
@@ -43,18 +43,15 @@ class SaleOrder(models.Model):
 
     def action_confirm(self):
         result = super().action_confirm()
-
         for order in self:
             attachments = self.env['ir.attachment'].search([
                 ('res_model', '=', 'sale.order'),
                 ('res_id', '=', order.id),
                 ('is_so_design_doc', '=', True),
             ])
-
             if not attachments:
                 continue
 
-            # Find linked MOs — try sale_id first, fallback to origin
             productions = self.env['mrp.production'].search([
                 ('sale_id', '=', order.id),
             ])
@@ -84,7 +81,6 @@ class SaleOrder(models.Model):
                         },
                         subtype_id=self.env.ref('mail.mt_note').id,
                     )
-
         return result
 
     def _copy_attachments_to(self, attachments, res_model, res_id):
@@ -103,10 +99,42 @@ class SaleOrder(models.Model):
         return created
 
     def _get_so_design_attachments(self):
-        """Helper used by QWeb report to fetch design docs."""
         self.ensure_one()
         return self.env['ir.attachment'].search([
             ('res_model', '=', 'sale.order'),
             ('res_id', '=', self.id),
             ('is_so_design_doc', '=', True),
         ])
+
+    def _get_attachment_images(self, attachment):
+        """
+        Return a list of base64-encoded PNG strings for the given attachment.
+        - For images: returns a single entry
+        - For PDFs: converts each page to a PNG using pdf2image (poppler)
+        - For other types: returns empty list
+        """
+        mimetype = attachment.mimetype or ''
+        raw = attachment.datas
+
+        if not raw:
+            return []
+
+        raw_bytes = base64.b64decode(raw)
+
+        if 'image' in mimetype:
+            return [raw.decode('utf-8') if isinstance(raw, bytes) else raw]
+
+        if 'pdf' in mimetype:
+            try:
+                from pdf2image import convert_from_bytes
+                pages = convert_from_bytes(raw_bytes, dpi=150)
+                result = []
+                for page in pages:
+                    buf = io.BytesIO()
+                    page.save(buf, format='PNG')
+                    result.append(base64.b64encode(buf.getvalue()).decode('utf-8'))
+                return result
+            except Exception:
+                return []
+
+        return []

@@ -18,7 +18,7 @@
                     <field
                         name="so_design_doc_count"
                         widget="statinfo"
-                        string="Design Docs"
+                        string="Design Documents"
                     />
                 </button>
             </xpath>

@@ -33,26 +33,32 @@
                         </div>
 
                         <t t-foreach="so_attachments" t-as="att">
-                            <div style="margin-bottom: 28px; page-break-inside: avoid;">
+                            <div style="margin-bottom: 32px;">
 
                                 <p style="
                                     font-family: Arial, sans-serif;
                                     font-size: 11px;
                                     font-weight: bold;
                                     color: #444444;
-                                    margin-bottom: 6px;
+                                    margin-bottom: 8px;
                                     border-left: 3px solid #7c6db0;
                                     padding-left: 8px;
                                 "><t t-out="att.name"/></p>
 
-                                <t t-if="att.mimetype and 'image' in att.mimetype">
-                                    <img
-                                        t-att-src="'data:%s;base64,%s' % (att.mimetype, (att.datas or b'').decode('utf-8') if att.datas else '')"
-                                        style="max-width:100%; height:auto; border:1px solid #eeeeee; border-radius:4px;"
-                                    />
+                                <t t-set="att_images" t-value="doc._get_attachment_images(att)"/>
+
+                                <t t-if="att_images">
+                                    <t t-foreach="att_images" t-as="img_b64">
+                                        <div style="page-break-inside: avoid; margin-bottom: 12px;">
+                                            <img
+                                                t-att-src="'data:image/png;base64,%s' % img_b64"
+                                                style="max-width: 100%; height: auto; border: 1px solid #eeeeee; border-radius: 4px;"
+                                            />
+                                        </div>
+                                    </t>
                                 </t>
 
-                                <t t-if="not att.mimetype or 'image' not in att.mimetype">
+                                <t t-if="not att_images">
                                     <p style="
                                         font-family: Arial, sans-serif;
                                         font-size: 11px;
@@ -63,8 +69,8 @@
                                         border-radius: 4px;
                                         border: 1px solid #eeeeee;
                                     ">
-                                        Non-image file — refer to digital copy:
-                                        <strong><t t-out="att.name"/></strong>
+                                        File attached: <strong><t t-out="att.name"/></strong>
+                                        (open the digital copy to view)
                                     </p>
                                 </t>
 
