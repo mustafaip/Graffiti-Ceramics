@@ -51,13 +51,10 @@ class SaleOrder(models.Model):
             if not attachments:
                 continue
 
+            # Find linked MOs via origin field (contains SO name e.g. S00047)
             productions = self.env['mrp.production'].search([
-                ('sale_id', '=', order.id),
+                ('origin', 'like', order.name),
             ])
-            if not productions:
-                productions = self.env['mrp.production'].search([
-                    ('origin', 'like', order.name),
-                ])
 
             for production in productions:
                 copied = order._copy_attachments_to(
