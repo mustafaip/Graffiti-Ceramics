@@ -1,69 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!--
-        Inherit the sale order report to list attachments at the bottom.
-        Full PDF appending (as extra pages) requires a post-processing
-        controller; here we render each image/PDF attachment inline.
-        For non-renderable files (e.g. DWG, ZIP) we list the filename only.
-    -->
     <template id="report_saleorder_attachment_pages"
               inherit_id="sale.report_saleorder_document">
 
         <xpath expr="//div[hasclass('page')]" position="after">
 
-            <t t-set="attachments" t-value="doc.attachment_ids.filtered(lambda a: a.mimetype and ('image' in a.mimetype or 'pdf' in a.mimetype))"/>
-            <t t-set="other_attachments" t-value="doc.attachment_ids.filtered(lambda a: not a.mimetype or ('image' not in a.mimetype and 'pdf' not in a.mimetype))"/>
+            <t t-set="so_attachments" t-value="doc.so_attachment_ids"/>
 
-            <t t-if="doc.attachment_ids">
-
-                <div style="page-break-before:always;">
+            <t t-if="so_attachments">
+                <div style="page-break-before: always;">
                     <div class="page">
 
-                        <h3 style="
-                            font-family: Arial, sans-serif;
-                            font-size: 16px;
-                            font-weight: bold;
-                            color: #333333;
+                        <div style="
                             border-bottom: 2px solid #cccccc;
-                            padding-bottom: 6px;
-                            margin-bottom: 16px;
+                            margin-bottom: 20px;
+                            padding-bottom: 8px;
                         ">
-                            Design Documents
-                        </h3>
-
-                        <t t-if="other_attachments">
-                            <p style="font-family:Arial,sans-serif; font-size:12px; color:#555;">
-                                <strong>Attached files:</strong>
+                            <h3 style="
+                                font-family: Arial, sans-serif;
+                                font-size: 16px;
+                                font-weight: bold;
+                                color: #333333;
+                                margin: 0;
+                            ">Design Documents</h3>
+                            <p style="
+                                font-family: Arial, sans-serif;
+                                font-size: 11px;
+                                color: #888888;
+                                margin: 4px 0 0 0;
+                            ">
+                                Attached to Quotation <t t-out="doc.name"/>
                             </p>
-                            <ul style="font-family:Arial,sans-serif; font-size:12px; color:#333;">
-                                <t t-foreach="other_attachments" t-as="att">
-                                    <li><t t-out="att.name"/></li>
-                                </t>
-                            </ul>
-                        </t>
+                        </div>
 
-                        <t t-foreach="attachments" t-as="att">
-                            <div style="margin-bottom:24px; page-break-inside:avoid;">
+                        <t t-foreach="so_attachments" t-as="att">
+                            <div style="margin-bottom: 28px; page-break-inside: avoid;">
+
                                 <p style="
-                                    font-family:Arial,sans-serif;
-                                    font-size:11px;
-                                    color:#666;
-                                    margin-bottom:6px;
+                                    font-family: Arial, sans-serif;
+                                    font-size: 11px;
+                                    font-weight: bold;
+                                    color: #444444;
+                                    margin-bottom: 6px;
+                                    border-left: 3px solid #7c6db0;
+                                    padding-left: 8px;
                                 ">
                                     <t t-out="att.name"/>
                                 </p>
 
                                 <t t-if="att.mimetype and 'image' in att.mimetype">
                                     <img
-                                        t-attf-src="data:{{ att.mimetype }};base64,{{ att.datas.decode() if att.datas else '' }}"
-                                        style="max-width:100%; height:auto; border:1px solid #eeeeee;"
+                                        t-att-src="'data:%s;base64,%s' % (att.mimetype, (att.datas or b'').decode('utf-8') if att.datas else '')"
+                                        style="max-width: 100%; height: auto; border: 1px solid #eeeeee; border-radius: 4px;"
                                     />
                                 </t>
 
-                                <t t-if="att.mimetype and 'pdf' in att.mimetype">
-                                    <p style="font-family:Arial,sans-serif;font-size:11px;color:#888;font-style:italic;">
-                                        (PDF attachment: <t t-out="att.name"/> — open separately to view full content)
+                                <t t-if="not att.mimetype or 'image' not in att.mimetype">
+                                    <p style="
+                                        font-family: Arial, sans-serif;
+                                        font-size: 11px;
+                                        color: #888888;
+                                        font-style: italic;
+                                        background: #f8f8f8;
+                                        padding: 10px 14px;
+                                        border-radius: 4px;
+                                        border: 1px solid #eeeeee;
+                                    ">
+                                        Non-image file — please refer to the digital copy:
+                                        <strong><t t-out="att.name"/></strong>
                                     </p>
                                 </t>
 
@@ -72,7 +77,6 @@
 
                     </div>
                 </div>
-
             </t>
 
         </xpath>

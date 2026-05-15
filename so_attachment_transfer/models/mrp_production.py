@@ -19,7 +19,6 @@ class MrpProduction(models.Model):
             ])
 
     def action_view_so_design_docs(self):
-        """Open the list of transferred SO design documents."""
         self.ensure_one()
         attachments = self.env['ir.attachment'].search([
             ('res_model', '=', 'mrp.production'),
@@ -35,5 +34,6 @@ class MrpProduction(models.Model):
             'context': {
                 'default_res_model': 'mrp.production',
                 'default_res_id': self.id,
+                'is_so_design_doc': True,
             },
         }

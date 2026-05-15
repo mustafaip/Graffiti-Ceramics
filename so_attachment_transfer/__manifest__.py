@@ -1,23 +1,18 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'SO Attachment Transfer to MO / Subcontracting',
-    'version': '19.0.1.0.0',
+    'version': '19.0.2.0.0',
     'category': 'Manufacturing',
     'summary': 'Transfer SO attachments to MO and Subcontracting Orders automatically',
     'description': """
 SO Attachment Transfer
 ======================
-When a Sales Order is confirmed, all attachments are automatically copied to:
-  - Linked Manufacturing Orders (MO)
-  - Linked Subcontracting Orders
+Attach design documents to a Sales Order/Quotation. On confirmation:
 
-Features
---------
-* All SO attachments append as extra pages on the printed Quotation PDF
-* On SO confirmation, attachments are copied to MO and Subcontracting Orders
-* Smart button on MO/Subcontracting shows count of transferred design docs
-* Chatter message posted on MO/Subcontracting confirming the transfer
-* Transferred attachments tagged with is_so_design_doc for easy filtering
+  1. Attachments appear as extra pages on the printed Quotation PDF
+  2. All attachments are auto-copied to linked Manufacturing Orders
+  3. A smart button on the MO shows the count and opens the docs
+  4. A chatter note is posted on the MO listing transferred files
     """,
     'author': 'Custom Development',
     'depends': ['sale_management', 'mrp'],

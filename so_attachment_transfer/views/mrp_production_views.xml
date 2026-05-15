@@ -15,7 +15,11 @@
                     icon="fa-paperclip"
                     invisible="so_design_doc_count == 0"
                 >
-                    <field name="so_design_doc_count" widget="statinfo" string="Design Docs"/>
+                    <field
+                        name="so_design_doc_count"
+                        widget="statinfo"
+                        string="Design Docs"
+                    />
                 </button>
             </xpath>
 
