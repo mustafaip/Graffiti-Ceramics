@@ -1,0 +1,37 @@
+// jm_pdc/static/src/scss/pdc_form.scss
+//
+// ROOT FIX (confirmed via DevTools):
+// o_form_sheet_bg is a flex child of o_form_renderer.
+// At narrow viewports it collapses to ~32px (flex-shrink:1, min-width:0).
+// The sheet inside it has min-width:650px so it overflows, but
+// o_form_view has overflow:hidden — clipping the sheet entirely.
+// The chatter then fills the remaining visible space, making it look
+// like the form fields disappeared.
+//
+// Fix: set flex-shrink:0 and min-width:650px on o_form_sheet_bg so it
+// never shrinks below the sheet content width. The parent scrolls instead.
+
+.o_form_view .o_form_sheet_bg {
+    min-width: 650px !important;
+    flex-shrink: 0 !important;
+    overflow-x: auto;
+}
+
+.o_form_view .o_form_sheet {
+    min-width: 650px;
+    max-width: 1140px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+// Keep inner groups from collapsing before the sheet scrolls
+.o_form_view .o_group.o_inner_group {
+    min-width: 0;
+    flex: 1 1 240px;
+}
+
+// Stat buttons: allow wrapping so they don't overflow into sheet body
+.o_form_view .oe_button_box {
+    flex-wrap: wrap;
+    min-height: 0;
+}

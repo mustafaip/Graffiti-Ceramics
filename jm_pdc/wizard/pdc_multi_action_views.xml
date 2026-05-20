@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- FIX 1: All server actions that use `model.action_*()` (i.e. called on
+         the recordset selected in the list) must use `records.action_*()` not
+         `model.action_*()`.  `model` is the model class (no active_ids context);
+         `records` is the filtered recordset of selected rows. Using `model`
+         means the method receives no IDs and silently does nothing.
+         Applied to: register, return, deposit, bounce, done. -->
+
+    <record id="model_pdc_wizard_action_state_register" model="ir.actions.server">
+        <field name="name">Register The Checks</field>
+        <field name="model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="state">code</field>
+        <field name="binding_view_types">list</field>
+        <field name="code">action = records.action_state_register()</field>
+    </record>
+
+    <record id="model_pdc_wizard_action_state_return" model="ir.actions.server">
+        <field name="name">Return The Checks</field>
+        <field name="model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="state">code</field>
+        <field name="binding_view_types">list</field>
+        <field name="code">action = records.action_state_return()</field>
+    </record>
+
+    <record id="model_pdc_wizard_action_state_deposit" model="ir.actions.server">
+        <field name="name">Deposit The Checks</field>
+        <field name="model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="state">code</field>
+        <field name="binding_view_types">list</field>
+        <field name="code">action = records.action_state_deposit()</field>
+    </record>
+
+    <record id="model_pdc_wizard_action_state_bounce" model="ir.actions.server">
+        <field name="name">Bounce The Checks</field>
+        <field name="model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="state">code</field>
+        <field name="binding_view_types">list</field>
+        <field name="code">action = records.action_state_bounce()</field>
+    </record>
+
+    <record id="model_pdc_wizard_action_state_done" model="ir.actions.server">
+        <field name="name">Done The Checks</field>
+        <field name="model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="state">code</field>
+        <field name="binding_view_types">list</field>
+        <field name="code">action = records.action_state_done()</field>
+    </record>
+
+    <!-- FIX 2: This action binds to account.model_account_move but calls a
+         method on pdc.wizard model — that is intentional (registering a PDC
+         from the invoice list). However model_id and binding_model_id are
+         mismatched: model_id should point to account.move (the model whose
+         method is called in context), OR the Python method must be defined on
+         account.move. Left as-is structurally but added a comment to flag this
+         for Python-side verification. Also changed model -> records. -->
+    <record id="model_account_move_action_register_check" model="ir.actions.server">
+        <field name="name">Register PDC Check</field>
+        <!-- NOTE: Verify that action_register_check() is defined on
+             account.move, not pdc.wizard. If it's on pdc.wizard, change
+             both model_id and binding_model_id back to jm_pdc.model_pdc_wizard
+             and trigger it from the PDC list instead. -->
+        <field name="model_id" ref="account.model_account_move" />
+        <field name="binding_model_id" ref="account.model_account_move" />
+        <field name="state">code</field>
+        <field name="binding_view_types">list</field>
+        <field name="code">action = records.action_register_check()</field>
+    </record>
+
+    <!-- FIX 3: Cancel, Cancel & Reset Draft, and Cancel & Delete actions were
+         missing binding_view_types="list". Without it, Odoo will not display
+         them in the Action menu of the list view. Added to all three. -->
+    <record model="ir.actions.server" id="sh_cancel_pdc_multi_action">
+        <field name="name">Cancel</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[(4, ref('jm_pdc.group_sh_pdc_cancel'))]" />
+        <field name="state">code</field>
+        <field name="code">records.action_pdc_cancel()</field>
+    </record>
+
+    <record model="ir.actions.server" id="sh_cancel_pdc_draft_multi_action">
+        <field name="name">Cancel &amp; Reset Draft</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[(4, ref('jm_pdc.group_sh_pdc_cancel'))]" />
+        <field name="state">code</field>
+        <field name="code">records.action_pdc_cancel_draft()</field>
+    </record>
+
+    <record model="ir.actions.server" id="sh_cancel_pdc_delete_multi_action">
+        <field name="name">Cancel &amp; Delete</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_model_id" ref="jm_pdc.model_pdc_wizard" />
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[(4, ref('jm_pdc.group_sh_pdc_cancel'))]" />
+        <field name="state">code</field>
+        <field name="code">records.action_pdc_cancel_delete()</field>
+    </record>
+
+</odoo>
