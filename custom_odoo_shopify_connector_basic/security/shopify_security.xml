@@ -10,7 +10,7 @@
         <!-- Shopify Manager: full access to Shopify configuration and logs -->
         <record id="group_shopify_manager" model="res.groups">
             <field name="name">Shopify Manager</field>
-            <field name="implied_ids" eval="[(4, ref('custom_odoo_shopify_connector_pro.group_shopify_user'))]"/>
+            <field name="implied_ids" eval="[(4, ref('custom_odoo_shopify_connector_basic.group_shopify_user'))]"/>
             <field name="comment">Full access to Shopify connector configuration and logs.</field>
         </record>
     </data>
