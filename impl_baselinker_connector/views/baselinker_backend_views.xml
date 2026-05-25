@@ -39,7 +39,7 @@
                             <field name="sync_products"/>
                             <field name="use_net_price"/>
                             <field name="default_tax_id"
-                                   attrs="{'invisible': [('use_net_price', '=', False)]}"/>
+                                   invisible="not use_net_price"/>
                             <field name="auto_confirm_orders"/>
                             <field name="default_currency_code"/>
                             <field name="shipping_product_code"/>
