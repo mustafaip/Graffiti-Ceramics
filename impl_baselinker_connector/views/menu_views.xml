@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <menuitem id="menu_baselinker_connector"
+              name="BaseLinker Connector"
+              parent="sale.menu_sale_config"
+              action="impl_baselinker_backend_action"
+              sequence="100"/>
+
+</odoo>

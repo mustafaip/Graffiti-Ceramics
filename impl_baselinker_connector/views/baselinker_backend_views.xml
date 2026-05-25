@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Backend: Form View -->
+    <record id="impl_baselinker_backend_view_form" model="ir.ui.view">
+        <field name="name">impl.baselinker.backend.form</field>
+        <field name="model">impl.baselinker.backend</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_test_connection"
+                            string="Test Connection"
+                            type="object"
+                            class="btn-primary"
+                            groups="base.group_system"/>
+                    <button name="action_sync_orders_manual"
+                            string="Sync Orders Now"
+                            type="object"
+                            groups="base.group_system"/>
+                    <button name="action_sync_products_manual"
+                            string="Sync Products Now"
+                            type="object"
+                            groups="base.group_system"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. BaseLinker Main"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Connection">
+                            <field name="api_token" password="True"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Import Settings">
+                            <field name="sync_orders"/>
+                            <field name="sync_products"/>
+                            <field name="use_net_price"/>
+                            <field name="default_tax_id"
+                                   attrs="{'invisible': [('use_net_price', '=', False)]}"/>
+                            <field name="auto_confirm_orders"/>
+                            <field name="default_currency_code"/>
+                            <field name="shipping_product_code"/>
+                        </group>
+                    </group>
+                    <group string="Sync Status">
+                        <group>
+                            <field name="last_order_sync_date"/>
+                            <field name="total_orders_synced"/>
+                        </group>
+                        <group>
+                            <field name="last_product_sync_date"/>
+                            <field name="total_products_synced"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Sync Logs" name="sync_logs">
+                            <field name="sync_log_ids" readonly="1">
+                                <list>
+                                    <field name="create_date" string="Date"/>
+                                    <field name="sync_type"/>
+                                    <field name="status"
+                                           decoration-success="status == 'success'"
+                                           decoration-warning="status == 'partial'"
+                                           decoration-danger="status == 'error'"
+                                           widget="badge"/>
+                                    <field name="records_synced"/>
+                                    <field name="records_failed"/>
+                                    <field name="duration" string="Duration (s)"/>
+                                    <field name="error_message" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Backend: List View -->
+    <record id="impl_baselinker_backend_view_list" model="ir.ui.view">
+        <field name="name">impl.baselinker.backend.list</field>
+        <field name="model">impl.baselinker.backend</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="sync_orders"/>
+                <field name="sync_products"/>
+                <field name="last_order_sync_date"/>
+                <field name="total_orders_synced"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Backend: Action -->
+    <record id="impl_baselinker_backend_action" model="ir.actions.act_window">
+        <field name="name">BaseLinker Connector</field>
+        <field name="res_model">impl.baselinker.backend</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure your BaseLinker connection
+            </p>
+            <p>
+                Create a backend to start syncing orders and products
+                from BaseLinker into Odoo.
+            </p>
+        </field>
+    </record>
+
+</odoo>

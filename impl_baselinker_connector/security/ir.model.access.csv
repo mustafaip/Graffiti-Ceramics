@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_impl_baselinker_backend_admin,impl.baselinker.backend admin,model_impl_baselinker_backend,base.group_system,1,1,1,1
+access_impl_baselinker_backend_user,impl.baselinker.backend user,model_impl_baselinker_backend,base.group_user,1,0,0,0
+access_impl_baselinker_sync_log_admin,impl.baselinker.sync.log admin,model_impl_baselinker_sync_log,base.group_system,1,1,1,1
+access_impl_baselinker_sync_log_user,impl.baselinker.sync.log user,model_impl_baselinker_sync_log,base.group_user,1,0,0,0
