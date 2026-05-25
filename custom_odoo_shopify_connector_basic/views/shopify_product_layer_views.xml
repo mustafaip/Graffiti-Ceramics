@@ -177,7 +177,7 @@
         <field name="res_model">shopify.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <field name="binding_model_id" ref="custom_odoo_shopify_connector_pro.model_shopify_product_layer"/>
+        <field name="binding_model_id" ref="custom_odoo_shopify_connector_basic.model_shopify_product_layer"/>
     </record>
 
     <!-- Action: open Shopify Product Layer list -->

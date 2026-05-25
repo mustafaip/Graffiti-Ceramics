@@ -61,7 +61,7 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
         <!-- Available from Shopify Products list (shopify.product.layer) -->
-        <field name="binding_model_id" ref="custom_odoo_shopify_connector_pro.model_shopify_product_layer"/>
+        <field name="binding_model_id" ref="custom_odoo_shopify_connector_basic.model_shopify_product_layer"/>
     </record>
 
 </odoo>

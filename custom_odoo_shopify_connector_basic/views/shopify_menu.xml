@@ -22,7 +22,7 @@
     <menuitem
         id="menu_shopify_dashboard_root"
         name="Dashboard"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="5"
         action="action_shopify_dashboard_entry"
     />
@@ -31,7 +31,7 @@
     <menuitem
         id="menu_shopify_configuration"
         name="Configuration"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="10"
     />
 
@@ -154,7 +154,7 @@
     <menuitem
         id="menu_shopify_products_root"
         name="Products"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="20"
     />
 
@@ -218,7 +218,7 @@
     <menuitem
         id="menu_shopify_customers_root"
         name="Customers"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="30"
     />
 
@@ -242,7 +242,7 @@
     <menuitem
         id="menu_shopify_orders_root"
         name="Orders"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="40"
     />
 
@@ -274,7 +274,7 @@
     <menuitem
         id="menu_shopify_inventory_root"
         name="Inventory"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="50"
     />
 
@@ -306,7 +306,7 @@
     <menuitem
         id="menu_shopify_shipping_root"
         name="Shipping"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="60"
     />
 
@@ -338,7 +338,7 @@
     <menuitem
         id="menu_shopify_synchronization_root"
         name="Synchronization"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="70"
     />
 
@@ -394,7 +394,7 @@
     <menuitem
         id="menu_shopify_queues_root"
         name="Queues"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="80"
     />
 
@@ -434,7 +434,7 @@
     <menuitem
         id="menu_shopify_logs_root"
         name="Sync Logs"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="90"
     />
 
@@ -466,7 +466,7 @@
     <menuitem
         id="menu_shopify_reports_root"
         name="Reports"
-        parent="custom_odoo_shopify_connector_pro.menu_shopify_root"
+        parent="custom_odoo_shopify_connector_basic.menu_shopify_root"
         sequence="100"
     />
 

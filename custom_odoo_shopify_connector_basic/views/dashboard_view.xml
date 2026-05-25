@@ -175,7 +175,7 @@
                                                 confirm="This will reset all failed queue jobs for this store. Continue?"/>
                                     </t>
                                     <button type="action"
-                                            name="%(custom_odoo_shopify_connector_pro.action_shopify_error_log)d"
+                                            name="%(custom_odoo_shopify_connector_basic.action_shopify_error_log)d"
                                             string="Errors"
                                             class="btn btn-light"
                                             context="{'search_default_instance_id': id, 'search_default_failed': 1}"/>
