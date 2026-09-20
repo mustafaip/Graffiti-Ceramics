@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_oc_connector_retry" model="ir.cron">
+        <field name="name">OC Connector: retry failed sync jobs</field>
+        <field name="model_id" ref="model_oc_connector_queue"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_retry_failed()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

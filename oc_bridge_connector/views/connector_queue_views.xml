@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sync Queue -->
+    <record id="view_oc_connector_queue_list" model="ir.ui.view">
+        <field name="name">oc.connector.queue.list</field>
+        <field name="model">oc.connector.queue</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="create_date" string="Queued at"/>
+                <field name="model"/>
+                <field name="res_id"/>
+                <field name="operation"/>
+                <field name="state" decoration-danger="state == 'failed'" decoration-success="state == 'done'"/>
+                <field name="retries"/>
+                <field name="last_error"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_oc_connector_queue" model="ir.actions.act_window">
+        <field name="name">Sync Queue</field>
+        <field name="res_model">oc.connector.queue</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Record Mapping -->
+    <record id="view_oc_connector_mapping_list" model="ir.ui.view">
+        <field name="name">oc.connector.mapping.list</field>
+        <field name="model">oc.connector.mapping</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="local_model"/>
+                <field name="local_res_id"/>
+                <field name="remote_res_id"/>
+                <field name="direction"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_oc_connector_mapping" model="ir.actions.act_window">
+        <field name="name">Record Mapping</field>
+        <field name="res_model">oc.connector.mapping</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

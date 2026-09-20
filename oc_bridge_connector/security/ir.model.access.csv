@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_oc_connector_mapping,oc.connector.mapping,model_oc_connector_mapping,base.group_system,1,1,1,1
+access_oc_connector_queue,oc.connector.queue,model_oc_connector_queue,base.group_system,1,1,1,1
