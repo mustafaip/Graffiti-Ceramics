@@ -13,7 +13,7 @@ class OcConnectorController(http.Controller):
         params = request.jsonrequest if hasattr(request, 'jsonrequest') else kwargs
 
         api_key = params.get('api_key')
-        expected = request.env['ir.config_parameter'].sudo().get_param('oc_connector.api_key')
+        expected = request.env['oc.connector.settings'].sudo().get_singleton().api_key
         if not expected or api_key != expected:
             return {'success': False, 'error': 'Invalid API key'}
 

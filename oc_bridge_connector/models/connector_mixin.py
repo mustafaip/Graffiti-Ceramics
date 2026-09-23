@@ -21,20 +21,20 @@ class OcConnectorMixin(models.AbstractModel):
     # Config helpers
     # ------------------------------------------------------------------
     @api.model
-    def _oc_get_param(self, key, default=False):
-        return self.env['ir.config_parameter'].sudo().get_param(key, default)
+    def _oc_settings(self):
+        return self.env['oc.connector.settings'].sudo().get_singleton()
 
     @api.model
     def _oc_role(self):
-        return self._oc_get_param('oc_connector.role', 'community')
+        return self._oc_settings().role
 
     @api.model
     def _oc_remote_url(self):
-        return (self._oc_get_param('oc_connector.remote_url') or '').rstrip('/')
+        return (self._oc_settings().remote_url or '').rstrip('/')
 
     @api.model
     def _oc_api_key(self):
-        return self._oc_get_param('oc_connector.api_key')
+        return self._oc_settings().api_key
 
     # ------------------------------------------------------------------
     # Outbound: push a record to the remote instance

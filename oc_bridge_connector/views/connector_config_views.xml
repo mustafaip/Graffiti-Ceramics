@@ -1,45 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="res_config_settings_view_form_oc_connector" model="ir.ui.view">
-        <field name="name">res.config.settings.view.form.oc.connector</field>
-        <field name="model">res.config.settings</field>
-        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+    <!-- Plain form for the settings singleton - no wizard machinery, standard Save/Discard. -->
+    <record id="view_oc_connector_settings_form" model="ir.ui.view">
+        <field name="name">oc.connector.settings.form</field>
+        <field name="model">oc.connector.settings</field>
         <field name="arch" type="xml">
-            <xpath expr="//div[hasclass('settings')]" position="inside">
-                <div class="app_settings_block" data-string="Connector Bridge" string="Connector Bridge"
-                     data-key="oc_bridge_connector">
-                    <h2>Community / Enterprise Bridge</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="oc_connector_role" string="This instance is"/>
-                                <div class="text-muted">
-                                    Enterprise pushes master data out. Community pushes quotations/orders out.
-                                </div>
-                                <field name="oc_connector_role"/>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="oc_connector_remote_url" string="Remote Odoo URL"/>
-                                <div class="text-muted">
-                                    Base URL of the OTHER instance, e.g. https://enterprise.mycompany.com
-                                </div>
-                                <field name="oc_connector_remote_url" placeholder="https://..."/>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="oc_connector_api_key" string="Shared API Key"/>
-                                <div class="text-muted">
-                                    Must be identical on both instances.
-                                </div>
-                                <field name="oc_connector_api_key" password="True"/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </xpath>
+            <form string="Connector Bridge Settings">
+                <sheet>
+                    <group>
+                        <field name="role"/>
+                        <field name="remote_url" placeholder="https://..."/>
+                        <field name="api_key" password="True"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Finds (or creates) the one settings record and opens it directly,
+         so the "Configuration" menu never shows a list or a "New" button. -->
+    <record id="action_server_open_oc_connector_settings" model="ir.actions.server">
+        <field name="name">Open Connector Bridge Settings</field>
+        <field name="model_id" ref="model_oc_connector_settings"/>
+        <field name="state">code</field>
+        <field name="code">
+record = model.get_singleton()
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Connector Bridge Settings',
+    'res_model': 'oc.connector.settings',
+    'res_id': record.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
         </field>
     </record>
 </odoo>

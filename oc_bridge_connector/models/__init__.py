@@ -2,7 +2,7 @@ from . import connector_mapping
 from . import connector_queue
 from . import connector_mixin
 from . import connector_receivers
-from . import res_config_settings
+from . import connector_settings
 from . import res_partner
 from . import product_template
 from . import uom_uom

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Community-Enterprise Bridge Connector',
-    'version': '17.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': 'Sales/Connector',
     'summary': 'Syncs master data (Products, UoM, Customers, Pricelists) from Enterprise '
                'to Community, and Quotations/Sales Orders from Community to Enterprise.',

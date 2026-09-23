@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_oc_connector_root" name="Connector Bridge" sequence="95"/>
+    <menuitem id="menu_oc_connector_config" name="Configuration" parent="menu_oc_connector_root"
+              action="action_server_open_oc_connector_settings" sequence="1"/>
     <menuitem id="menu_oc_connector_queue" name="Sync Queue" parent="menu_oc_connector_root"
               action="action_oc_connector_queue" sequence="10"/>
     <menuitem id="menu_oc_connector_mapping" name="Record Mapping" parent="menu_oc_connector_root"
