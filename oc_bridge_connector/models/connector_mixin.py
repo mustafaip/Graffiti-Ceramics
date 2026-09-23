@@ -61,16 +61,11 @@ class OcConnectorMixin(models.AbstractModel):
             timeout=15,
         )
         resp.raise_for_status()
-        body = resp.json()
-        if 'result' not in body and 'error' in body:
-            # The remote's own request dispatch failed before it ever reached
-            # our controller logic (a low-level JSON-RPC error envelope, not
-            # our own {'success': False, 'error': ...} shape). Surface it
-            # plainly instead of silently treating it as an empty result.
-            raw_error = body['error']
-            detail = raw_error.get('data', {}).get('message') if isinstance(raw_error, dict) else raw_error
-            raise UserError(f"Remote returned a low-level error (not from the connector itself): {detail}")
-        result = body.get('result', {})
+        try:
+            result = resp.json()
+        except ValueError:
+            raise UserError(
+                f"Remote returned a non-JSON response (HTTP {resp.status_code}): {resp.text[:300]}")
         if not result.get('success'):
             raise UserError(f"Remote rejected the record: {result.get('error')}")
         return result
