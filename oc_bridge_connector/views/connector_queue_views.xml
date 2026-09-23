@@ -23,6 +23,32 @@
         <field name="view_mode">list,form</field>
     </record>
 
+    <record id="view_oc_connector_queue_form" model="ir.ui.view">
+        <field name="name">oc.connector.queue.form</field>
+        <field name="model">oc.connector.queue</field>
+        <field name="arch" type="xml">
+            <form string="Sync Queue Item">
+                <header>
+                    <button name="action_retry_now" type="object" string="Retry Now" class="btn-primary"
+                            invisible="state == 'done'"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="model"/>
+                        <field name="res_id"/>
+                        <field name="operation"/>
+                        <field name="state"/>
+                        <field name="retries"/>
+                    </group>
+                    <group>
+                        <field name="payload"/>
+                        <field name="last_error"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <!-- Record Mapping -->
     <record id="view_oc_connector_mapping_list" model="ir.ui.view">
         <field name="name">oc.connector.mapping.list</field>

@@ -8,6 +8,10 @@ class OcConnectorReceivers(models.AbstractModel):
     """
     _inherit = 'oc.connector.mixin'
 
+    # ---- ping (used by the Test Connection button - touches no real data) --
+    def _oc_receive_ping(self, operation, data, remote_id):
+        return 0
+
     # ---- res.partner (Enterprise -> Community) --------------------------
     def _oc_receive_res_partner(self, operation, data, remote_id):
         if operation == 'unlink':

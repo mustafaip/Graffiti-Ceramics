@@ -6,6 +6,10 @@
         <field name="model">oc.connector.settings</field>
         <field name="arch" type="xml">
             <form string="Connector Bridge Settings">
+                <header>
+                    <button name="action_test_connection" type="object" string="Test Connection"
+                            class="btn-secondary"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="role"/>
