@@ -87,7 +87,6 @@ class OcConnectorReceivers(models.AbstractModel):
         }
         if uom:
             vals['uom_id'] = uom.id
-            vals['uom_po_id'] = uom.id
 
         return self.with_context(oc_connector_sync=True)._oc_find_or_create(
             'product.template', domain, vals, remote_id)
