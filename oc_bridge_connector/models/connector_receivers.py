@@ -174,6 +174,14 @@ class OcConnectorReceivers(models.AbstractModel):
                 'discount': line.get('discount') or 0.0,
             })
 
+        # Auto-confirm, only if the toggle is on AND Community's order is itself
+        # confirmed. This is also the point where Inter-Company Transactions (if
+        # configured) would fire, since Odoo hooks that into action_confirm().
+        settings = self.env['oc.connector.settings'].sudo().get_singleton()
+        if settings.auto_confirm_sales_orders and data.get('state') in ('sale', 'done') \
+                and order.state not in ('sale', 'done', 'cancel'):
+            order_ctx.browse(order.id).action_confirm()
+
         self.env['oc.connector.mapping'].sudo().set_mapping(
             'sale.order', order.id, remote_id, direction='pull')
         return order.id

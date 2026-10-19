@@ -15,7 +15,15 @@
                         <field name="role"/>
                         <field name="remote_url" placeholder="https://..."/>
                         <field name="api_key" password="True"/>
+                        <field name="auto_confirm_sales_orders" invisible="role != 'enterprise'"/>
                     </group>
+                    <div class="text-muted" invisible="role != 'enterprise'">
+                        When ON: a Sales Order that arrives already confirmed on Community is
+                        automatically confirmed here too - which also means anything else that
+                        normally triggers on confirmation (Inter-Company Transactions, stock
+                        reservation, invoicing policies) fires immediately and unattended.
+                        When OFF: replicated orders always land as Draft here, for manual review.
+                    </div>
                 </sheet>
             </form>
         </field>

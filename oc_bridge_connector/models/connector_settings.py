@@ -23,6 +23,17 @@ class OcConnectorSettings(models.Model):
     api_key = fields.Char(
         string='Shared API Key',
         help="Any long random string. Must be identical on both instances.")
+    auto_confirm_sales_orders = fields.Boolean(
+        string='Auto-confirm replicated Sales Orders',
+        default=False,
+        help="Only matters on the Enterprise (receiving) side. When ON: if a Sales "
+             "Order arrives already confirmed on Community, it is automatically "
+             "confirmed here too (action_confirm) - which also means anything else "
+             "that normally triggers on confirmation, such as Inter-Company "
+             "Transactions, stock reservation, or invoicing policies, will fire "
+             "immediately and unattended. When OFF (default): every replicated "
+             "order always lands as a Draft/Quotation here, regardless of its "
+             "state on Community, so a human reviews and confirms it manually.")
 
     _sql_constraints = [
         ('uniq_singleton', 'unique(singleton_key)',
