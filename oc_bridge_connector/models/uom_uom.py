@@ -24,12 +24,13 @@ class UomUom(models.Model):
         self._oc_push(operation, 'uom.uom', self._oc_uom_payload)
 
     def _oc_uom_payload(self, rec):
+        # Odoo 20 units are hierarchical: a unit is expressed relative to a
+        # "reference" unit (relative_uom_id x relative_factor). There is no
+        # uom.category / uom_type / rounding any more.
         return {
             'name': rec.name,
-            'category_name': rec.category_id.name,
-            'uom_type': rec.uom_type,
-            'factor': rec.factor,
-            'rounding': rec.rounding,
+            'relative_uom_name': rec.relative_uom_id.name or False,
+            'relative_factor': rec.relative_factor,
             'active': rec.active,
-            '_match_key': {'name': rec.name, 'category_name': rec.category_id.name},
+            '_match_key': {'name': rec.name},
         }

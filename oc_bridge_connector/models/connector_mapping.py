@@ -19,10 +19,10 @@ class OcConnectorMapping(models.Model):
         ('pull', 'Received from remote (I am the receiver)'),
     ], required=True, default='push')
 
-    _sql_constraints = [
-        ('uniq_local', 'unique(local_model, local_res_id, direction)',
-         'A mapping already exists for this record.'),
-    ]
+    _uniq_local = models.Constraint(
+        'unique(local_model, local_res_id, direction)',
+        'A mapping already exists for this record.',
+    )
 
     @api.model
     def get_remote_id(self, model, local_id):

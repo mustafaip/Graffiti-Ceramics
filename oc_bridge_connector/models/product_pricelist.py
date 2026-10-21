@@ -27,11 +27,14 @@ class ProductPricelist(models.Model):
         items = []
         for item in rec.item_ids:
             items.append({
-                'applied_on': item.applied_on,
                 'default_code': item.product_tmpl_id.default_code if item.product_tmpl_id else False,
+                # Odoo 20: compute_price is fixed / discount / markup and the
+                # percentage lives in price_discount (percent_price is gone).
                 'compute_price': item.compute_price,
                 'fixed_price': item.fixed_price,
-                'percent_price': item.percent_price,
+                'price_discount': item.price_discount,
+                'price_surcharge': item.price_surcharge,
+                'price_round': item.price_round,
                 'min_quantity': item.min_quantity,
             })
         return {

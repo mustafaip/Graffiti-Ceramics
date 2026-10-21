@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Community-Enterprise Bridge Connector',
-    'version': '19.0.1.0.0',
+    'version': '20.0.1.0.0',
     'category': 'Sales/Connector',
     'summary': 'Syncs master data (Products, UoM, Customers, Pricelists) from Enterprise '
                'to Community, and Quotations/Sales Orders from Community to Enterprise.',
@@ -30,7 +30,7 @@ Sync Queue to monitor / debug failures.
     'author': 'Custom Build',
     'depends': ['base', 'sale_management', 'product', 'uom'],
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'data/ir_cron_data.xml',
         'views/connector_config_views.xml',
         'views/connector_queue_views.xml',

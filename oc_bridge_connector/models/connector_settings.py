@@ -35,10 +35,10 @@ class OcConnectorSettings(models.Model):
              "order always lands as a Draft/Quotation here, regardless of its "
              "state on Community, so a human reviews and confirms it manually.")
 
-    _sql_constraints = [
-        ('uniq_singleton', 'unique(singleton_key)',
-         'Only one Connector Bridge settings record may exist.'),
-    ]
+    _uniq_singleton = models.Constraint(
+        'unique(singleton_key)',
+        'Only one Connector Bridge settings record may exist.',
+    )
 
     @api.model_create_multi
     def create(self, vals_list):

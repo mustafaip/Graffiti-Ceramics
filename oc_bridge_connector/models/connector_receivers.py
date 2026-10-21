@@ -50,17 +50,21 @@ class OcConnectorReceivers(models.AbstractModel):
         if operation == 'unlink':
             return self._oc_unlink_by_remote('uom.uom', remote_id)
 
-        category = self.env['uom.category'].sudo().search([('name', '=', data.get('category_name'))], limit=1)
-        if not category:
-            category = self.env['uom.category'].sudo().create({'name': data.get('category_name')})
+        Uom = self.env['uom.uom'].sudo().with_context(active_test=False)
+        relative = Uom.browse()
+        if data.get('relative_uom_name'):
+            relative = Uom.search([('name', '=', data['relative_uom_name'])], limit=1)
+            if not relative:
+                # The reference unit has not been synced yet: create it as a
+                # plain reference unit; its own push will update it later.
+                relative = self.with_context(oc_connector_sync=True).env['uom.uom'].sudo().create(
+                    {'name': data['relative_uom_name']})
 
-        domain = [('name', '=', data.get('name')), ('category_id', '=', category.id)]
+        domain = [('name', '=', data.get('name'))]
         vals = {
             'name': data.get('name'),
-            'category_id': category.id,
-            'uom_type': data.get('uom_type') or 'reference',
-            'factor': data.get('factor') or 1.0,
-            'rounding': data.get('rounding') or 0.01,
+            'relative_uom_id': relative.id or False,
+            'relative_factor': (data.get('relative_factor') or 1.0) if relative else 1.0,
             'active': data.get('active', True),
         }
         return self.with_context(oc_connector_sync=True)._oc_find_or_create(
@@ -113,13 +117,15 @@ class OcConnectorReceivers(models.AbstractModel):
             if item.get('default_code'):
                 product_tmpl = self.env['product.template'].sudo().search(
                     [('default_code', '=', item['default_code'])], limit=1)
+            # applied_on is computed from product_tmpl_id in Odoo 20
             Item.create({
                 'pricelist_id': pricelist.id,
-                'applied_on': item.get('applied_on') or '3_global',
                 'product_tmpl_id': product_tmpl.id if product_tmpl else False,
                 'compute_price': item.get('compute_price') or 'fixed',
                 'fixed_price': item.get('fixed_price') or 0.0,
-                'percent_price': item.get('percent_price') or 0.0,
+                'price_discount': item.get('price_discount') or 0.0,
+                'price_surcharge': item.get('price_surcharge') or 0.0,
+                'price_round': item.get('price_round') or 0.0,
                 'min_quantity': item.get('min_quantity') or 0,
             })
         return local_id

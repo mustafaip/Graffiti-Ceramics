@@ -87,3 +87,13 @@ updates hit the *same* remote record:
   each payload builder is a short, self-contained method.
 - Pricelist items are matched to products via `default_code`, so variants
   without one won't get pricelist rules synced.
+
+---
+
+## Odoo 20 port (20.0.1.0.0)
+
+- Security moved to `security/ir.access.csv`.
+- `_sql_constraints` replaced by `models.Constraint` (the old attribute is ignored in Odoo 20, which silently dropped the uniqueness guarantees).
+- **UoM sync rewritten** for the new hierarchical units: Odoo 20 has no `uom.category`, `uom_type` or `rounding`; units are synced as name + reference unit + ratio (`relative_uom_id` / `relative_factor`).
+- **Pricelist sync updated**: `percent_price` is gone; rules sync `price_discount`, `price_surcharge`, `price_round`; `compute_price` is now `fixed` / `discount` / `markup`.
+- Install the same 20.0 version on BOTH databases; payloads are not compatible with the 19.0 version.
