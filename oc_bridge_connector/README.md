@@ -97,3 +97,17 @@ updates hit the *same* remote record:
 - **UoM sync rewritten** for the new hierarchical units: Odoo 20 has no `uom.category`, `uom_type` or `rounding`; units are synced as name + reference unit + ratio (`relative_uom_id` / `relative_factor`).
 - **Pricelist sync updated**: `percent_price` is gone; rules sync `price_discount`, `price_surcharge`, `price_round`; `compute_price` is now `fixed` / `discount` / `markup`.
 - Install the same 20.0 version on BOTH databases; payloads are not compatible with the 19.0 version.
+
+---
+
+## 20.0.1.1.0 - non-blocking sync
+
+**Timeouts fixed.** Saving a record no longer makes an HTTP call. The change is
+written to the Sync Queue inside the same transaction and a background job
+("OC Connector: send queued sync jobs", every minute, also triggered on
+demand) sends it. Several quick edits of one record collapse into one push,
+the payload is built at send time (always the latest values), and the connect
+timeout is 3 s. Nothing is queued until the Remote URL and API key are set,
+and nothing is pushed while the module itself is being installed/updated.
+Dependency changed from `sale_management` to `sale` (lighter install).
+

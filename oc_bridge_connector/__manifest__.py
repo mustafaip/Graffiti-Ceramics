@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Community-Enterprise Bridge Connector',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.1.0',
     'category': 'Sales/Connector',
-    'summary': 'Syncs master data (Products, UoM, Customers, Pricelists) from Enterprise '
-               'to Community, and Quotations/Sales Orders from Community to Enterprise.',
+    'summary': 'Syncs master data (Products, UoM, Customers, Pricelists) '
+               'from Enterprise to Community, and Quotations/Sales Orders from Community to Enterprise.',
     'description': """
 Odoo Community <-> Enterprise Bridge Connector
 ================================================
@@ -22,13 +22,12 @@ Community database    -> role = "Community (sales source)"
     - Pushes Quotations / Sales Orders to Enterprise whenever they are
       created or updated.
 
-Sync is real-time (push on write, over an authenticated HTTP/JSON endpoint).
-If the remote server is unreachable when a push is attempted, the change is
-queued and retried automatically every 5 minutes - see Connector Bridge >
-Sync Queue to monitor / debug failures.
+Sync never blocks a user's save: changes are written to a queue in the same
+transaction and sent right after by a background job (retried automatically if the
+remote is down) - see Connector Bridge > Sync Queue to monitor / debug failures.
 """,
     'author': 'Custom Build',
-    'depends': ['base', 'sale_management', 'product', 'uom'],
+    'depends': ['sale', 'product', 'uom'],
     'data': [
         'security/ir.access.csv',
         'data/ir_cron_data.xml',

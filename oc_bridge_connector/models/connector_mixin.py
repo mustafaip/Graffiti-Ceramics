@@ -4,8 +4,10 @@ import logging
 import requests
 from odoo import models, api
 from odoo.exceptions import UserError
+from .connector_queue import MAX_RETRIES
 
 _logger = logging.getLogger(__name__)
+
 
 
 class OcConnectorMixin(models.AbstractModel):
@@ -41,8 +43,10 @@ class OcConnectorMixin(models.AbstractModel):
     # ------------------------------------------------------------------
     @api.model
     def _oc_send_raw(self, model, operation, payload_json, local_id):
-        """Low level HTTP call. Used for both the immediate real-time push
-        and for cron retries of queued jobs.
+        """Low level HTTP call, used by the queue worker and Test Connection.
+
+        Timeouts are (connect, read): an unreachable server fails in 3s instead
+        of hanging a worker for the whole read timeout.
         """
         url = self._oc_remote_url()
         api_key = self._oc_api_key()
@@ -58,7 +62,7 @@ class OcConnectorMixin(models.AbstractModel):
                 'local_id': local_id,
                 'data': json.loads(payload_json) if isinstance(payload_json, str) else payload_json,
             },
-            timeout=15,
+            timeout=(3, 30),
         )
         resp.raise_for_status()
         try:
@@ -70,34 +74,53 @@ class OcConnectorMixin(models.AbstractModel):
             raise UserError(f"Remote rejected the record: {result.get('error')}")
         return result
 
+    @api.model
+    def _oc_build_payload(self, rec, builder_name):
+        """Builds the JSON payload for `rec` at SEND time (so the remote always
+        gets the latest values, and several quick edits collapse into one push)."""
+        payload = getattr(rec, builder_name)(rec)
+        payload['_remote_id'] = self.env['oc.connector.mapping'].sudo().get_remote_id(rec._name, rec.id) or False
+        return payload
+
     def _oc_push(self, operation, model_name, build_payload):
         """Call from create()/write() overrides.
 
-        `build_payload` is a callable(record) -> dict of fields to send.
-        On success, stores/updates the local->remote mapping.
-        On failure (remote down, timeout, ...) the record is queued for
-        retry instead of blocking the user's save.
+        Does NO network I/O. It only records "this record needs pushing" in the
+        queue table, inside the caller's own transaction (so a rollback also
+        discards the job), and wakes the queue cron. The HTTP call happens in
+        the background job, never inside the user's request - that is what
+        previously caused gateway timeouts whenever the remote was slow or
+        unreachable, or when many records were written at once.
         """
-        Mapping = self.env['oc.connector.mapping'].sudo()
+        ctx = self.env.context
+        if ctx.get('install_mode') or ctx.get('oc_connector_sync'):
+            return  # module install/update data loading, or applying inbound sync
+        if not (self._oc_remote_url() and self._oc_api_key()):
+            return  # not configured yet: nothing to push to
         Queue = self.env['oc.connector.queue'].sudo()
+        builder_name = build_payload.__name__
+        queued = False
         for rec in self:
-            payload = build_payload(rec)
-            payload['_remote_id'] = Mapping.get_remote_id(model_name, rec.id) or False
-            try:
-                result = self._oc_send_raw(model_name, operation, json.dumps(payload), rec.id)
-                if result.get('local_id'):
-                    Mapping.set_mapping(model_name, rec.id, result['local_id'], direction='push')
-            except Exception as e:  # noqa: BLE001
-                _logger.warning("OC Connector: queuing %s#%s after send failure: %s",
-                                 model_name, rec.id, e)
+            # One open job per record is enough: payload is built at send time.
+            job = Queue.search([
+                ('model', '=', model_name), ('res_id', '=', rec.id),
+                ('operation', '!=', 'unlink'),
+                ('state', 'in', ['pending', 'failed']), ('retries', '<', MAX_RETRIES),
+            ], limit=1)
+            if job:
+                if job.state == 'failed':
+                    job.state = 'pending'
+            else:
                 Queue.create({
                     'model': model_name,
                     'res_id': rec.id,
                     'operation': operation,
-                    'payload': json.dumps(payload),
+                    'payload_builder': builder_name,
                     'state': 'pending',
-                    'last_error': str(e)[:2000],
                 })
+            queued = True
+        if queued:
+            Queue._oc_wake_cron()
 
     # ------------------------------------------------------------------
     # Inbound: find-or-create a local record from a remote payload

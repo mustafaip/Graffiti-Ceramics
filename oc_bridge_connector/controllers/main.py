@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import hmac
 import json
 import logging
 from odoo import http
@@ -20,7 +21,7 @@ class OcConnectorController(http.Controller):
 
             api_key = params.get('api_key')
             expected = request.env['oc.connector.settings'].sudo().get_singleton().api_key
-            if not expected or api_key != expected:
+            if not expected or not hmac.compare_digest(str(api_key or ''), expected):
                 return self._json_response({'success': False, 'error': 'Invalid API key'})
 
             model = params.get('model')
@@ -36,6 +37,8 @@ class OcConnectorController(http.Controller):
                     {'success': False, 'error': f'No handler registered for model {model}'})
 
             local_res_id = handler(operation, data, local_id)
+            if isinstance(local_res_id, dict):  # handler wants to return extra info
+                return self._json_response({'success': True, **local_res_id})
             return self._json_response({'success': True, 'local_id': local_res_id})
         except Exception as e:  # noqa: BLE001
             _logger.exception("OC Connector: failed to process incoming request")
