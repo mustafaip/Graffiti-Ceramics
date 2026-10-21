@@ -2,15 +2,13 @@
     'name': 'Sales: Quotations Only',
     'version': '20.0.1.0.0',
     'category': 'Sales/Sales',
-    'summary': 'Hide the Confirm button so users can only create quotations',
+    'summary': 'Hide the Confirm button for everyone so only quotations can be created',
     'description': """
-Hides the "Confirm" button on sales orders for everyone except members of the
-"Can Confirm Sales Orders" group, and blocks confirmation server-side as well.
+Removes the "Confirm" button from sales orders for all users (including
+administrators) and blocks direct confirmation server-side.
     """,
     'depends': ['sale'],
-    'data': [
-        'security/security.xml',
-    ],
+    'data': [],
     'installable': True,
     'application': False,
     'license': 'LGPL-3',
