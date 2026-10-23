@@ -6,7 +6,7 @@
     'author': 'AMP Data Solutions L.L.C.',
     'depends': ['sale'],
     'data': [
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
         'views/sale_terms_template_views.xml',
         'views/sale_order_views.xml',
         'data/sale_terms_category_data.xml',
