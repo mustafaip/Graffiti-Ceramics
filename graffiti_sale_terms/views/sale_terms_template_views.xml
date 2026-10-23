@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Categories -->
+    <record id="sale_terms_category_view_list" model="ir.ui.view">
+        <field name="name">sale.terms.category.list</field>
+        <field name="model">sale.terms.category</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sale_terms_category_action" model="ir.actions.act_window">
+        <field name="name">T&amp;C Categories</field>
+        <field name="res_model">sale.terms.category</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- Templates -->
+    <record id="sale_terms_template_view_list" model="ir.ui.view">
+        <field name="name">sale.terms.template.list</field>
+        <field name="model">sale.terms.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sale_terms_template_view_form" model="ir.ui.view">
+        <field name="name">sale.terms.template.form</field>
+        <field name="model">sale.terms.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="category_id"/>
+                        </group>
+                        <group>
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <field name="terms"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sale_terms_template_view_search" model="ir.ui.view">
+        <field name="name">sale.terms.template.search</field>
+        <field name="model">sale.terms.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="category_id"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="sale_terms_template_action" model="ir.actions.act_window">
+        <field name="name">Terms &amp; Conditions Templates</field>
+        <field name="res_model">sale.terms.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_sale_terms_root"
+              name="Terms &amp; Conditions"
+              parent="sale.menu_sale_config"
+              sequence="40"/>
+    <menuitem id="menu_sale_terms_template"
+              name="Templates"
+              parent="menu_sale_terms_root"
+              action="sale_terms_template_action"
+              sequence="10"/>
+    <menuitem id="menu_sale_terms_category"
+              name="Categories"
+              parent="menu_sale_terms_root"
+              action="sale_terms_category_action"
+              sequence="20"
+              groups="sales_team.group_sale_manager"/>
+</odoo>
