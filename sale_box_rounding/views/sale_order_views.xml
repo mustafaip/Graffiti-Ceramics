@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Quotations and Sales Orders share this form. -->
+    <record id="view_order_form_box_rounding" model="ir.ui.view">
+        <field name="name">sale.order.form.box.rounding</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list[@name='sol_list']/column[@name='sol_qty']" position="after">
+                <field name="box_conversion_active" column_invisible="True"/>
+                <field name="piece_qty" optional="show"
+                       invisible="display_type"
+                       readonly="not box_conversion_active or is_downpayment"/>
+                <field name="box_qty" optional="show"
+                       invisible="display_type"
+                       readonly="not box_conversion_active or is_downpayment"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
