@@ -1,0 +1,5 @@
+id,name,model_id,group_id/id,operation,domain
+access_sale_terms_template_user,sale.terms.template user,sale.terms.template,sales_team.group_sale_salesman,r,
+access_sale_terms_template_manager,sale.terms.template manager,sale.terms.template,sales_team.group_sale_manager,crud,
+access_sale_terms_category_user,sale.terms.category user,sale.terms.category,sales_team.group_sale_salesman,r,
+access_sale_terms_category_manager,sale.terms.category manager,sale.terms.category,sales_team.group_sale_manager,crud,

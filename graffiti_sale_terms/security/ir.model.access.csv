@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_terms_template_user,sale.terms.template user,model_sale_terms_template,sales_team.group_sale_salesman,1,0,0,0
+access_sale_terms_template_manager,sale.terms.template manager,model_sale_terms_template,sales_team.group_sale_manager,1,1,1,1
+access_sale_terms_category_user,sale.terms.category user,model_sale_terms_category,sales_team.group_sale_salesman,1,0,0,0
+access_sale_terms_category_manager,sale.terms.category manager,model_sale_terms_category,sales_team.group_sale_manager,1,1,1,1

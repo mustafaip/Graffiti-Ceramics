@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="terms_category_payment" model="sale.terms.category">
+        <field name="name">Payment Terms</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="terms_category_delivery" model="sale.terms.category">
+        <field name="name">Delivery Terms</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="terms_category_warranty" model="sale.terms.category">
+        <field name="name">Warranty &amp; Returns</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="terms_category_general" model="sale.terms.category">
+        <field name="name">General</field>
+        <field name="sequence">40</field>
+    </record>
+</odoo>
