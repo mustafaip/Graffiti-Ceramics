@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_alternate_name" model="ir.ui.view">
+        <field name="name">product.template.form.alternate.name</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='general_information']" position="after">
+                <page string="Alternate Products" name="alternate_products">
+                    <group>
+                        <p class="text-muted" colspan="2">
+                            Additional names this product can be sold as. On a sales
+                            order the line still points to this product, but prints
+                            the alternate name.
+                        </p>
+                    </group>
+                    <field name="alternate_name_ids" nolabel="1" context="{'default_product_tmpl_id': id}">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="description_sale" optional="hide"/>
+                            <field name="product_tmpl_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_alternate_name" model="ir.ui.view">
+        <field name="name">sale.order.form.alternate.name</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list/field[@name='name']" position="before">
+                <field name="alternate_name_id"
+                       string="Sold As"
+                       optional="show"
+                       options="{'no_create': True, 'no_open': True}"
+                       domain="[('product_tmpl_id', '=', product_template_id)]"
+                       invisible="not product_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
