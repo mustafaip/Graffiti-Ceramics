@@ -4,6 +4,11 @@ from odoo import api, fields, models
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
+    alt_product_tmpl_id = fields.Many2one(
+        "product.template",
+        related="product_id.product_tmpl_id",
+        string="Alternate Product Template",
+    )
     alternate_name_id = fields.Many2one(
         "product.alternate.name",
         string="Sold As",
@@ -11,7 +16,7 @@ class SaleOrderLine(models.Model):
         store=True,
         readonly=False,
         precompute=True,
-        domain="[('product_tmpl_id', '=', product_template_id)]",
+        domain="[('product_tmpl_id', '=', alt_product_tmpl_id)]",
         help="Alternate name used for this line. The line still points to the "
         "original product (stock, price, taxes unchanged).",
     )

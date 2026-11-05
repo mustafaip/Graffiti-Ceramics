@@ -5,13 +5,13 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='order_line']/list/field[@name='name']" position="before">
+            <xpath expr="//field[@name='order_line']/list" position="inside">
+                <field name="alt_product_tmpl_id" column_invisible="1"/>
                 <field name="alternate_name_id"
                        string="Sold As"
                        optional="show"
                        options="{'no_create': True, 'no_open': True}"
-                       domain="[('product_tmpl_id', '=', product_template_id)]"
-                       invisible="not product_id"/>
+                       domain="[('product_tmpl_id', '=', alt_product_tmpl_id)]"/>
             </xpath>
         </field>
     </record>
