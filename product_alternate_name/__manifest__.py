@@ -20,6 +20,7 @@ product search by any of their alternate names.
         "views/sale_order_views.xml",
         "views/report_saleorder_templates.xml",
     ],
+    "post_init_hook": "_post_init_hook",
     "installable": True,
     "application": False,
 }

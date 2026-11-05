@@ -32,6 +32,12 @@ class ProductAlternateName(models.Model):
         ondelete="cascade",
     )
     active = fields.Boolean(default=True)
+    is_primary = fields.Boolean(
+        string="Regular Name",
+        default=False,
+        help="Technical entry carrying the product's regular name so regular "
+        "products and aliases can be picked from the same list.",
+    )
 
     @api.depends("name", "product_tmpl_id.display_name")
     def _compute_display_name(self):

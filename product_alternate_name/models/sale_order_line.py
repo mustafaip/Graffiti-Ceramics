@@ -45,7 +45,7 @@ class SaleOrderLine(models.Model):
     def _get_sale_order_line_multiline_description_sale(self):
         description = super()._get_sale_order_line_multiline_description_sale()
         alt = self.alternate_name_id
-        if not alt or not self.product_id:
+        if not alt or alt.is_primary or not self.product_id:
             return description
 
         lines = description.split("\n")
