@@ -69,37 +69,41 @@ class ResPartner(models.Model):
         digits = re.sub(r'\D', '', number or '')
         return digits[-9:] if len(digits) >= 6 else False
 
-    @api.depends('phone', 'mobile', 'is_company', 'parent_id')
+    @api.depends('phone', 'is_company', 'parent_id')
     def _compute_same_phone_partner_id(self):
+        # 'mobile' no longer exists on res.partner in Odoo 20 CE; only use it
+        # if some other module (e.g. Enterprise) brings it back.
+        phone_fields = [f for f in ('phone', 'mobile') if f in self._fields]
         for partner in self:
             partner.same_phone_partner_id = False
             if partner.is_company:
                 continue
             keys = {
-                k for k in (
-                    self._gc_phone_key(partner.phone),
-                    self._gc_phone_key(partner.mobile),
-                ) if k
+                k for k in (self._gc_phone_key(partner[f]) for f in phone_fields) if k
             }
             if not keys:
                 continue
+            conditions = SQL(" OR ").join(
+                SQL(
+                    "right(regexp_replace(coalesce(%s, ''), '[^0-9]', '', 'g'), 9) = ANY(%s)",
+                    SQL.identifier('res_partner', f),
+                    list(keys),
+                )
+                for f in phone_fields
+            )
             self.env.cr.execute(SQL(
                 """
                 SELECT id FROM res_partner
                  WHERE active IS TRUE
                    AND id != %s
                    AND (parent_id IS NULL OR parent_id != %s)
-                   AND (
-                        right(regexp_replace(coalesce(phone, ''), '[^0-9]', '', 'g'), 9) = ANY(%s)
-                     OR right(regexp_replace(coalesce(mobile, ''), '[^0-9]', '', 'g'), 9) = ANY(%s)
-                   )
+                   AND (%s)
                  ORDER BY id
                  LIMIT 1
                 """,
                 partner._origin.id or 0,
                 partner.parent_id.id or 0,
-                list(keys),
-                list(keys),
+                conditions,
             ))
             row = self.env.cr.fetchone()
             if row:
