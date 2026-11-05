@@ -18,6 +18,7 @@ product search by any of their alternate names.
         "security/ir.access.csv",
         "views/product_template_views.xml",
         "views/sale_order_views.xml",
+        "views/report_saleorder_templates.xml",
     ],
     "installable": True,
     "application": False,

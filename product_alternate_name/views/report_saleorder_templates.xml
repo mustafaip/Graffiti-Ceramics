@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Quotation / Sales Order PDF: print only the alias name on lines that use one -->
+    <template id="report_saleorder_document_alternate_name" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//td[@name='td_product_name']//span[@t-field='line.label']" position="replace">
+            <t t-if="line.alternate_name_id">
+                <span class="d-inline-block w-100 lh-sm" t-out="line.alternate_name_id.name"/>
+                <span t-if="line.alternate_name_id.description_sale"
+                      class="d-block text-muted small"
+                      style="white-space: pre-line;"
+                      t-out="line.alternate_name_id.description_sale"/>
+            </t>
+            <span t-else="" class="d-inline-block w-100 lh-sm" t-field="line.label">Bacon Burger</span>
+        </xpath>
+    </template>
+</odoo>
