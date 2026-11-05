@@ -16,7 +16,7 @@ class SaleOrderLine(models.Model):
         store=True,
         readonly=False,
         precompute=True,
-        domain="[('product_tmpl_id', '=', alt_product_tmpl_id)]",
+        domain="[('product_tmpl_id', '=', alt_product_tmpl_id)] if alt_product_tmpl_id else [('product_tmpl_id.sale_ok', '=', True)]",
         help="Alternate name used for this line. The line still points to the "
         "original product (stock, price, taxes unchanged).",
     )
@@ -27,6 +27,14 @@ class SaleOrderLine(models.Model):
             alt = line.alternate_name_id
             if alt and alt.product_tmpl_id != line.product_id.product_tmpl_id:
                 line.alternate_name_id = False
+
+    @api.onchange("alternate_name_id")
+    def _onchange_alternate_name_id(self):
+        """Choosing an alternate name fills in the original product."""
+        for line in self:
+            alt = line.alternate_name_id
+            if alt and line.product_id.product_tmpl_id != alt.product_tmpl_id:
+                line.product_id = alt.product_tmpl_id.product_variant_id
 
     @api.depends("alternate_name_id")
     def _compute_name(self):

@@ -1,10 +1,11 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ProductAlternateName(models.Model):
     _name = "product.alternate.name"
     _description = "Product Alternate Name"
     _order = "sequence, id"
+    _rec_names_search = ["name", "code", "product_tmpl_id"]
 
     _name_uniq = models.Constraint(
         "UNIQUE(product_tmpl_id, name)",
@@ -32,6 +33,17 @@ class ProductAlternateName(models.Model):
     )
     active = fields.Boolean(default=True)
 
+    @api.depends("name", "product_tmpl_id.display_name")
     def _compute_display_name(self):
         for rec in self:
-            rec.display_name = rec.name or ""
+            if (
+                rec.name
+                and rec.product_tmpl_id
+                and not self.env.context.get("alt_name_only")
+            ):
+                rec.display_name = "%s (%s)" % (
+                    rec.name,
+                    rec.product_tmpl_id.display_name,
+                )
+            else:
+                rec.display_name = rec.name or ""
