@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_gc_company_type" model="ir.ui.view">
+        <field name="name">res.partner.form.gc.company.type</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Duplicate phone warning (same look as the Tax ID one) -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-warning" role="alert"
+                     invisible="is_company or not same_phone_partner_id">
+                    A partner with the same phone number already exists
+                    (<field name="same_phone_partner_id" class="oe_inline" readonly="1"
+                             options="{'no_create': True}"/>),
+                    are you sure you want to create a new one?
+                </div>
+            </xpath>
+
+            <!-- Individual / Company radio -->
+            <xpath expr="//h1[.//field[@name='name']]" position="before">
+                <field name="is_company" invisible="1"/>
+                <field name="company_type" widget="radio"
+                       options="{'horizontal': true}"/>
+            </xpath>
+
+            <!-- TRN mandatory for companies -->
+            <field name="vat" position="attributes">
+                <attribute name="required">is_company and type == 'contact' and not parent_id</attribute>
+            </field>
+
+        </field>
+    </record>
+</odoo>
