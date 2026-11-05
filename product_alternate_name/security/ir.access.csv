@@ -1,0 +1,4 @@
+id,name,model_id,group_id/id,operation,domain
+access_product_alternate_name_user,product.alternate.name user,product.alternate.name,base.group_user,r,
+access_product_alternate_name_sale_manager,product.alternate.name sale manager,product.alternate.name,sales_team.group_sale_manager,crud,
+access_product_alternate_name_product_manager,product.alternate.name product manager,product.alternate.name,product.group_product_manager,crud,

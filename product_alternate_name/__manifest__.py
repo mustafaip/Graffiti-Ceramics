@@ -15,7 +15,7 @@ product search by any of their alternate names.
     "license": "LGPL-3",
     "depends": ["product", "sale"],
     "data": [
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
         "views/product_template_views.xml",
         "views/sale_order_views.xml",
     ],
