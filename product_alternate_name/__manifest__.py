@@ -1,6 +1,6 @@
 {
     "name": "Product Alternate Names",
-    "version": "20.0.1.0.1",
+    "version": "20.0.1.0.2",
     "category": "Sales/Sales",
     "summary": "Sell a product under alternate names while keeping the original product",
     "description": """
@@ -18,7 +18,6 @@ product search by any of their alternate names.
         "security/ir.access.csv",
         "views/product_template_views.xml",
         "views/sale_order_views.xml",
-        "views/report_saleorder_templates.xml",
     ],
     "post_init_hook": "_post_init_hook",
     "installable": True,

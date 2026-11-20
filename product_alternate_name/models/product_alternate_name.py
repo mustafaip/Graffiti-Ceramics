@@ -42,14 +42,13 @@ class ProductAlternateName(models.Model):
     @api.depends("name", "product_tmpl_id.display_name")
     def _compute_display_name(self):
         for rec in self:
+            name = rec.name or rec.product_tmpl_id.name or ""
             if (
-                rec.name
+                name
                 and rec.product_tmpl_id
+                and not rec.is_primary
                 and not self.env.context.get("alt_name_only")
             ):
-                rec.display_name = "%s (%s)" % (
-                    rec.name,
-                    rec.product_tmpl_id.display_name,
-                )
+                rec.display_name = "%s (%s)" % (name, rec.product_tmpl_id.display_name)
             else:
-                rec.display_name = rec.name or ""
+                rec.display_name = name
