@@ -5,7 +5,7 @@ class ProductAlternateName(models.Model):
     _name = "product.alternate.name"
     _description = "Product Alternate Name"
     _order = "sequence, id"
-    _rec_names_search = ["name", "code", "product_tmpl_id"]
+    _rec_names_search = ["name", "code"]
 
     _name_uniq = models.Constraint(
         "UNIQUE(product_tmpl_id, name)",
@@ -32,14 +32,9 @@ class ProductAlternateName(models.Model):
         ondelete="cascade",
     )
     active = fields.Boolean(default=True)
-    is_primary = fields.Boolean(
-        string="Regular Name",
-        default=False,
-        help="Technical entry carrying the product's regular name so regular "
-        "products and aliases can be picked from the same list.",
-    )
 
     @api.depends("name", "product_tmpl_id.display_name")
+    @api.depends_context("alt_name_only")
     def _compute_display_name(self):
         for rec in self:
             if (

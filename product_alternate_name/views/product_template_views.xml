@@ -20,7 +20,6 @@
                             <field name="name"/>
                             <field name="code"/>
                             <field name="description_sale" optional="hide"/>
-                            <field name="product_tmpl_id" column_invisible="1"/>
                         </list>
                     </field>
                 </page>

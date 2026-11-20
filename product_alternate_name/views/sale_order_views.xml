@@ -5,17 +5,18 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <!-- Alternate-name picker takes the place of the Product column -->
-            <xpath expr="//field[@name='order_line']//list//field[@name='product_template_id']" position="before">
+            <!-- "Sold As" sits right after the description, so the standard
+                 product/description cell (and Add Section / Add Note) behave
+                 exactly as in core Odoo. -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='name']" position="after">
+                <field name="product_has_alternate_names" column_invisible="1"/>
                 <field name="alternate_name_id"
-                       string="Product"
-                       context="{'alt_name_only': True}"
+                       optional="show"
+                       placeholder="Regular name"
+                       context="{'alt_name_only': product_template_id}"
                        options="{'no_create': True, 'no_open': True}"
-                       domain="[('product_tmpl_id', '=', product_template_id)] if product_template_id else [('product_tmpl_id.sale_ok', '=', True)]"/>
-            </xpath>
-            <!-- Original product column stays available but hidden by default -->
-            <xpath expr="//field[@name='order_line']//list//field[@name='product_template_id']" position="attributes">
-                <attribute name="optional">hide</attribute>
+                       readonly="display_type"
+                       invisible="display_type or (product_id and not product_has_alternate_names)"/>
             </xpath>
         </field>
     </record>

@@ -11,21 +11,35 @@ class SaleOrderLine(models.Model):
         store=True,
         readonly=False,
         precompute=True,
-        domain="[('product_tmpl_id', '=', product_template_id)] if product_template_id else [('product_tmpl_id.sale_ok', '=', True)]",
-        help="Alternate name used for this line. The line still points to the "
-        "original product (stock, price, taxes unchanged).",
+        domain="[('product_tmpl_id', '=', product_template_id)] if product_template_id "
+        "else [('product_tmpl_id.sale_ok', '=', True)]",
+        help="Optional alternate name printed for this line. The line still "
+        "points to the original product (stock, price, taxes unchanged). "
+        "Leave empty to use the product's regular name.",
+    )
+    product_has_alternate_names = fields.Boolean(
+        compute="_compute_product_has_alternate_names"
     )
 
     @api.depends("product_id")
+    def _compute_product_has_alternate_names(self):
+        for line in self:
+            line.product_has_alternate_names = bool(
+                line.product_id.product_tmpl_id.alternate_name_ids
+            )
+
+    @api.depends("product_id", "display_type")
     def _compute_alternate_name_id(self):
         for line in self:
             alt = line.alternate_name_id
-            if alt and alt.product_tmpl_id != line.product_id.product_tmpl_id:
+            if line.display_type or (
+                alt and alt.product_tmpl_id != line.product_id.product_tmpl_id
+            ):
                 line.alternate_name_id = False
 
     @api.onchange("alternate_name_id")
     def _onchange_alternate_name_id(self):
-        """Choosing an alternate name fills in the original product."""
+        """Choosing an alternate name first fills in the original product."""
         for line in self:
             alt = line.alternate_name_id
             if alt and line.product_id.product_tmpl_id != alt.product_tmpl_id:
@@ -40,22 +54,18 @@ class SaleOrderLine(models.Model):
     def _get_sale_order_line_multiline_description_sale(self):
         description = super()._get_sale_order_line_multiline_description_sale()
         alt = self.alternate_name_id
-        if not alt or alt.is_primary or not self.product_id:
+        if not alt or not self.product_id or self.display_type:
             return description
 
-        lines = description.split("\n")
         product = self.product_id
         code = alt.code or product.default_code
         first_line = "[%s] %s" % (code, alt.name) if code else alt.name
         # The first line of the standard description is the product name.
         # Keep everything else (variant attributes, etc.)
-        rest = lines[1:]
-        if alt.description_sale and product.description_sale:
-            # swap the product sales description for the alternate one
-            rest = [
-                l for l in rest if l not in product.description_sale.split("\n")
-            ]
-            rest.insert(0, alt.description_sale)
-        elif alt.description_sale:
+        rest = description.split("\n")[1:]
+        if alt.description_sale:
+            if product.description_sale:
+                product_desc = product.description_sale.split("\n")
+                rest = [l for l in rest if l not in product_desc]
             rest.insert(0, alt.description_sale)
         return "\n".join([first_line] + rest)
