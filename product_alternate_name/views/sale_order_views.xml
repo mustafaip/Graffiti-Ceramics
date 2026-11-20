@@ -5,17 +5,41 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
+<<<<<<< HEAD
+            <!--
+                "Sold As" is its own column, right after the standard Description
+                column. It is deliberately NOT placed inside the Description cell:
+                that cell is a single widget that only knows about the product.
+            -->
+            <xpath expr="//list[@name='sol_list']/column[@name='product_and_description']" position="after">
+                <field name="alt_product_tmpl_id" column_invisible="1"/>
+=======
             <!-- Alternate-name picker takes the place of the Product column -->
             <xpath expr="//field[@name='order_line']//list//field[@name='product_template_id']" position="before">
+<<<<<<< Updated upstream
+=======
+>>>>>>> 8bc0e1585a15edd07cd7b435bc6242acd5679e60
+>>>>>>> Stashed changes
                 <field name="alternate_name_id"
-                       string="Product"
+                       string="Sold As"
+                       optional="show"
+                       invisible="display_type"
                        context="{'alt_name_only': True}"
                        options="{'no_create': True, 'no_open': True}"
+<<<<<<< Updated upstream
                        domain="[('product_tmpl_id', '=', product_template_id)] if product_template_id else [('product_tmpl_id.sale_ok', '=', True)]"/>
             </xpath>
             <!-- Original product column stays available but hidden by default -->
             <xpath expr="//field[@name='order_line']//list//field[@name='product_template_id']" position="attributes">
                 <attribute name="optional">hide</attribute>
+=======
+<<<<<<< HEAD
+                       placeholder="Regular name"
+                       domain="[('product_tmpl_id', '=', alt_product_tmpl_id)] if alt_product_tmpl_id else [('product_tmpl_id.sale_ok', '=', True)]"/>
+=======
+                       domain="[('product_tmpl_id', '=', product_template_id)] if product_template_id else [('product_tmpl_id.sale_ok', '=', True)]"/>
+>>>>>>> 8bc0e1585a15edd07cd7b435bc6242acd5679e60
+>>>>>>> Stashed changes
             </xpath>
         </field>
     </record>
