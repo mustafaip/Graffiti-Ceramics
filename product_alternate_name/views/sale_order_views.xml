@@ -7,12 +7,11 @@
         <field name="arch" type="xml">
             <!-- Alternate-name picker takes the place of the Product column -->
             <xpath expr="//field[@name='order_line']//list//field[@name='product_template_id']" position="before">
-                <field name="alt_product_tmpl_id" column_invisible="1"/>
                 <field name="alternate_name_id"
                        string="Product"
                        context="{'alt_name_only': True}"
                        options="{'no_create': True, 'no_open': True}"
-                       domain="[('product_tmpl_id', '=', alt_product_tmpl_id)] if alt_product_tmpl_id else [('product_tmpl_id.sale_ok', '=', True)]"/>
+                       domain="[('product_tmpl_id', '=', product_template_id)] if product_template_id else [('product_tmpl_id.sale_ok', '=', True)]"/>
             </xpath>
             <!-- Original product column stays available but hidden by default -->
             <xpath expr="//field[@name='order_line']//list//field[@name='product_template_id']" position="attributes">

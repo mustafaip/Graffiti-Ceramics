@@ -1,6 +1,6 @@
 {
     "name": "Product Alternate Names",
-    "version": "20.0.1.0.2",
+    "version": "20.0.1.0.3",
     "category": "Sales/Sales",
     "summary": "Sell a product under alternate names while keeping the original product",
     "description": """

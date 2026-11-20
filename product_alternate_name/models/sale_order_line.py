@@ -16,7 +16,7 @@ class SaleOrderLine(models.Model):
         store=True,
         readonly=False,
         precompute=True,
-        domain="[('product_tmpl_id', '=', alt_product_tmpl_id)] if alt_product_tmpl_id else [('product_tmpl_id.sale_ok', '=', True)]",
+        domain="[('product_tmpl_id', '=', product_template_id)] if product_template_id else [('product_tmpl_id.sale_ok', '=', True)]",
         help="Name used for this line: either the regular product name or one "
         "of its alternate names. The line still points to the original "
         "product (stock, price, taxes unchanged).",
