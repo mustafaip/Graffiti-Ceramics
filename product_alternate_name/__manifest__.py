@@ -1,37 +1,24 @@
 {
     "name": "Product Alternate Names",
-<<<<<<< Updated upstream
-    "version": "20.0.1.0.3",
-=======
-<<<<<<< HEAD
-    "version": "20.0.1.1.0",
-=======
-    "version": "20.0.1.0.3",
->>>>>>> 8bc0e1585a15edd07cd7b435bc6242acd5679e60
->>>>>>> Stashed changes
+    "version": "20.0.1.0.2",
     "category": "Sales/Sales",
-    "summary": "Sell the same product under alternate names (aliases) on quotes, orders and invoices",
+    "summary": "Sell a product under alternate names while keeping the original product",
     "description": """
-Product Alternate Names
-=======================
-Maintain additional selling names (and optional codes / sales descriptions) on
-the product form, in the "Alternate Names" tab.
-
-On a sales order line pick the name in the "Sold As" column. The line still
-points to the original product, so stock, price, taxes and accounting are
-untouched, but the line title printed on the quotation, order confirmation and
-customer invoice uses the alternate name.
-
-Products can also be found in any product search by their alternate names or
-codes.
+Adds an "Alternate Products" tab on the product form where additional selling
+names can be maintained. On sales order lines the salesperson can pick a
+"Sold As" name; the line still points to the original product (stock, price,
+taxes, invoicing are unchanged) but the description printed on the quotation,
+order and invoice uses the alternate name. Products can also be found in the
+product search by any of their alternate names.
     """,
-    "author": "AMP Data Solutions",
+    "author": "Custom",
     "license": "LGPL-3",
-    "depends": ["product", "sale", "account"],
+    "depends": ["product", "sale"],
     "data": [
         "security/ir.access.csv",
         "views/product_template_views.xml",
         "views/sale_order_views.xml",
+        "views/report_saleorder_templates.xml",
     ],
     "post_init_hook": "_post_init_hook",
     "installable": True,

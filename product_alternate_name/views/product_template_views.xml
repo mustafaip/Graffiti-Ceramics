@@ -6,14 +6,12 @@
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='general_information']" position="after">
-                <page string="Alternate Names" name="alternate_products">
+                <page string="Alternate Products" name="alternate_products">
                     <group>
                         <p class="text-muted" colspan="2">
-                            Other names this product can be sold under. On a sales order
-                            pick one in the "Sold As" column: the line still points to this
-                            product (stock, price, taxes) but quotations and invoices show
-                            the alternate name. Leave the code empty to use the product's
-                            internal reference.
+                            Additional names this product can be sold as. On a sales
+                            order the line still points to this product, but prints
+                            the alternate name.
                         </p>
                     </group>
                     <field name="alternate_name_ids" nolabel="1" context="{'default_product_tmpl_id': id}">
@@ -21,7 +19,7 @@
                             <field name="sequence" widget="handle"/>
                             <field name="name"/>
                             <field name="code"/>
-                            <field name="description_sale"/>
+                            <field name="description_sale" optional="hide"/>
                             <field name="product_tmpl_id" column_invisible="1"/>
                         </list>
                     </field>
