@@ -1,12 +1,12 @@
 {
     "name": "Product Alternate Names",
-    "version": "20.0.1.1.0",
+    "version": "20.0.1.0.3",
     "category": "Sales/Sales",
     "summary": "Sell a product under alternate names while keeping the original product",
     "description": """
 Adds an "Alternate Products" tab on the product form where additional selling
-names can be maintained. On sales order lines the salesperson picks the product as usual and can
-choose a "Sold As" name (or pick the alternate name first); the line still points to the original product (stock, price,
+names can be maintained. On sales order lines the salesperson can pick a
+"Sold As" name; the line still points to the original product (stock, price,
 taxes, invoicing are unchanged) but the description printed on the quotation,
 order and invoice uses the alternate name. Products can also be found in the
 product search by any of their alternate names.
@@ -18,8 +18,8 @@ product search by any of their alternate names.
         "security/ir.access.csv",
         "views/product_template_views.xml",
         "views/sale_order_views.xml",
-        "views/report_saleorder_templates.xml",
     ],
+    "post_init_hook": "_post_init_hook",
     "installable": True,
     "application": False,
 }

@@ -1,8 +1,9 @@
-def migrate(cr, version):
-    """Intentionally empty.
+from odoo import SUPERUSER_ID, api
 
-    Replaces an obsolete post-migration from an earlier version that called
-    product.template._sync_primary_alternate_name(), which no longer exists.
-    All work for 20.0.1.1.0 is done in pre-migration.py.
-    """
-    return
+
+def migrate(cr, version):
+    """Create the regular-name entry for every existing product."""
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    env["product.template"].with_context(active_test=False).search(
+        []
+    )._sync_primary_alternate_name()
